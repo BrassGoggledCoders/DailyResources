@@ -1,0 +1,21 @@
+modLoader="javafml"
+loaderVersion="[40,)"
+issueTrackerURL="https://github.com/BrassGoggledCoders/DailyResources/issues"
+license="MIT"
+
+[[mods]]
+    modId="daily_resources"
+    version="${file.jarVersion}"
+    displayName="Daily Resources"
+    credits="BrassGoggledCoders Artists"
+    authors="SkySom, DivineAspect"
+    description='''
+        Get your Resources Delivered Daily
+    '''
+
+[[dependencies.daily_resources]]
+    modId="forge"
+    mandatory=true
+    versionRange="[40.1.0,)"
+    ordering="NONE"
+    side="BOTH"

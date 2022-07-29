@@ -1,0 +1,14 @@
+{
+  "generators": [
+    {
+      "tag": "minecraft:planks",
+      "count": 64
+    },
+    {
+      "itemStack": {
+        "id": "minecraft:chest",
+        "Count": 8
+      }
+    }
+  ]
+}

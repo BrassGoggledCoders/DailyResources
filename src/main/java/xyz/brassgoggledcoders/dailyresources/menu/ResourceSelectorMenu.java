@@ -1,0 +1,101 @@
+package xyz.brassgoggledcoders.dailyresources.menu;
+
+import com.google.common.collect.Lists;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.DataSlot;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+
+public class ResourceSelectorMenu extends AbstractContainerMenu {
+    private final DataSlot selectedItemStackIndex = DataSlot.standalone();
+    private final List<ItemStack> itemStacks = Lists.newArrayList();
+
+    private final Predicate<Player> stillValid;
+    private final Consumer<Player> closeHandler;
+
+    public ResourceSelectorMenu(MenuType<?> menuType, int menuId, Inventory inventory, Predicate<Player> stillValid,
+                                Consumer<Player> closeHandler, List<ItemStack> choices) {
+        super(menuType, menuId);
+
+        this.stillValid = stillValid;
+        this.closeHandler = closeHandler;
+        this.itemStacks.addAll(choices);
+
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 9; ++j) {
+                this.addSlot(new Slot(inventory, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
+            }
+        }
+
+        for (int k = 0; k < 9; ++k) {
+            this.addSlot(new Slot(inventory, k, 8 + k * 18, 142));
+        }
+
+        this.addDataSlot(this.selectedItemStackIndex);
+    }
+
+    /**
+     * Returns the index of the selected recipe.
+     */
+    public int getSelectedItemStackIndex() {
+        return this.selectedItemStackIndex.get();
+    }
+
+    public List<ItemStack> getItemStacks() {
+        return this.itemStacks;
+    }
+
+    public int getNumItemStacks() {
+        return this.itemStacks.size();
+    }
+
+    @Override
+    public boolean stillValid(@NotNull Player pPlayer) {
+        return this.stillValid.test(pPlayer);
+    }
+
+    @Override
+    public boolean clickMenuButton(@NotNull Player pPlayer, int pId) {
+        if (this.isValidItemStackIndex(pId)) {
+            this.selectedItemStackIndex.set(pId);
+        }
+
+        return true;
+    }
+
+    private boolean isValidItemStackIndex(int index) {
+        return index >= 0 && index < this.itemStacks.size();
+    }
+
+    @Override
+    public void removed(@NotNull Player pPlayer) {
+        super.removed(pPlayer);
+        this.closeHandler.accept(pPlayer);
+    }
+
+    @NotNull
+    public static ResourceSelectorMenu create(MenuType<ResourceSelectorMenu> menuType, int id, Inventory inventory,
+                                              @Nullable FriendlyByteBuf friendlyByteBuf) {
+        return new ResourceSelectorMenu(
+                menuType,
+                id,
+                inventory,
+                player -> true,
+                player -> {
+
+                },
+                friendlyByteBuf != null ? friendlyByteBuf.readList(FriendlyByteBuf::readItem) : Collections.emptyList()
+        );
+    }
+}

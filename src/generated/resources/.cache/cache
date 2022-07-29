@@ -1,0 +1,7 @@
+1150873270705d6228a7691c8130ef47c4f212ed assets/daily_resources/blockstates/barrel.json
+f951b080ce6aa00d8290a511247ad0b866917cc2 assets/daily_resources/lang/en_ud.json
+bc517f71fc639837d5097d76c1d039510fafd4fa assets/daily_resources/lang/en_us.json
+b07b4e3dbd294ec20b93615a40b69b18dcd229a2 assets/daily_resources/models/block/barrel.json
+32e192b203624058aa8f7b6af52d1fa7de384725 assets/daily_resources/models/block/barrel_open.json
+fd20eeb073710bdc5c50960784ad24b34c223992 assets/daily_resources/models/item/barrel.json
+77d7fd3ed64acfa24ef3f79c2462cb54bc340c46 data/daily_resources/loot_tables/blocks/barrel.json

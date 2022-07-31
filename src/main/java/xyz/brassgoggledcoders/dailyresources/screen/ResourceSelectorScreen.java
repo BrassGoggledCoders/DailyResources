@@ -4,10 +4,14 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Widget;
+import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
@@ -36,8 +40,30 @@ public class ResourceSelectorScreen extends AbstractContainerScreen<ResourceSele
     }
 
     @Override
+    protected void init() {
+        super.init();
+        this.addRenderableWidget(new Button(
+                this.leftPos + 118,
+                this.topPos + 30,
+                53,
+                20,
+                new TextComponent("Confirm"),
+                pButton -> ResourceSelectorScreen.this.clickConfirm()
+        ));
+    }
+
+    private void clickConfirm() {
+        if (this.menu.clickMenuButton(Objects.requireNonNull(this.getMinecraft().player), -1)) {
+            Objects.requireNonNull(this.getMinecraft().gameMode).handleInventoryButtonClick((this.menu).containerId, -1);
+        }
+    }
+
+    @Override
     public void render(@NotNull PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        for(Widget widget : this.renderables) {
+            widget.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        }
         this.renderTooltip(pPoseStack, pMouseX, pMouseY);
     }
 
@@ -51,8 +77,8 @@ public class ResourceSelectorScreen extends AbstractContainerScreen<ResourceSele
         int j = this.topPos;
         this.blit(pPoseStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
         int k = (int) (41.0F * this.scrollOffs);
-        this.blit(pPoseStack, i + 119, j + 15 + k, 176 + (this.isScrollBarActive() ? 0 : 12), 0, 12, 15);
-        int l = this.leftPos + 52;
+        this.blit(pPoseStack, i + 103, j + 15 + k, 176 + (this.isScrollBarActive() ? 0 : 12), 0, 12, 15);
+        int l = this.leftPos + 36;
         int i1 = this.topPos + 14;
         int j1 = this.startIndex + 12;
         this.renderButtons(pPoseStack, pX, pY, l, i1, j1);
@@ -111,7 +137,7 @@ public class ResourceSelectorScreen extends AbstractContainerScreen<ResourceSele
 
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
         this.scrolling = false;
-        int i = this.leftPos + 52;
+        int i = this.leftPos + 36;
         int j = this.topPos + 14;
         int k = this.startIndex + 12;
 
@@ -131,6 +157,10 @@ public class ResourceSelectorScreen extends AbstractContainerScreen<ResourceSele
         j = this.topPos + 9;
         if (pMouseX >= (double) i && pMouseX < (double) (i + 12) && pMouseY >= (double) j && pMouseY < (double) (j + 54)) {
             this.scrolling = true;
+        }
+
+        for (GuiEventListener listener : this.children()) {
+            listener.mouseClicked(pMouseX, pMouseY, pButton);
         }
 
         return super.mouseClicked(pMouseX, pMouseY, pButton);

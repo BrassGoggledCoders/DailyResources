@@ -20,6 +20,7 @@ import java.util.function.Predicate;
 
 public class ResourceSelectorMenu extends AbstractContainerMenu {
     private final DataSlot selectedItemStackIndex = DataSlot.standalone();
+
     private final List<Pair<Resource, ItemStack>> itemStacks;
 
     private final Predicate<Player> stillValid;
@@ -68,7 +69,13 @@ public class ResourceSelectorMenu extends AbstractContainerMenu {
 
     @Override
     public boolean clickMenuButton(@NotNull Player pPlayer, int pId) {
-        if (this.isValidItemStackIndex(pId)) {
+        if (pId == -1) {
+            if (this.isValidItemStackIndex(this.selectedItemStackIndex.get())) {
+                //TODO allow confirming
+            } else {
+                return false;
+            }
+        } else if (this.isValidItemStackIndex(pId)) {
             this.selectedItemStackIndex.set(pId);
         }
 

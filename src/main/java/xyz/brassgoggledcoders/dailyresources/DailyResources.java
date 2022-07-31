@@ -6,8 +6,9 @@ import com.tterrag.registrate.Registrate;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fml.common.Mod;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesBlocks;
+import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesResources;
+import xyz.brassgoggledcoders.dailyresources.resource.ResourceGroup;
 import xyz.brassgoggledcoders.dailyresources.selector.CodecReloadListener;
-import xyz.brassgoggledcoders.dailyresources.selector.Selector;
 
 import java.util.function.Supplier;
 
@@ -17,10 +18,11 @@ public class DailyResources {
 
     private static final Supplier<Registrate> REGISTRATE_SUPPLIER = Suppliers.memoize(() -> Registrate.create(ID));
 
-    public static CodecReloadListener<Selector> SELECTOR_MANAGER;
+    public static CodecReloadListener<ResourceGroup> RESOURCE_GROUP_MANAGER;
 
     public DailyResources() {
         DailyResourcesBlocks.setup();
+        DailyResourcesResources.setup();
     }
 
     public static Registrate getRegistrate() {

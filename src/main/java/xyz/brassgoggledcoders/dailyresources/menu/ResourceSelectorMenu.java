@@ -1,6 +1,6 @@
 package xyz.brassgoggledcoders.dailyresources.menu;
 
-import com.google.common.collect.Lists;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -11,6 +11,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import xyz.brassgoggledcoders.dailyresources.resource.Resource;
 
 import java.util.Collections;
 import java.util.List;
@@ -19,18 +20,18 @@ import java.util.function.Predicate;
 
 public class ResourceSelectorMenu extends AbstractContainerMenu {
     private final DataSlot selectedItemStackIndex = DataSlot.standalone();
-    private final List<ItemStack> itemStacks = Lists.newArrayList();
+    private final List<Pair<Resource, ItemStack>> itemStacks;
 
     private final Predicate<Player> stillValid;
     private final Consumer<Player> closeHandler;
 
     public ResourceSelectorMenu(MenuType<?> menuType, int menuId, Inventory inventory, Predicate<Player> stillValid,
-                                Consumer<Player> closeHandler, List<ItemStack> choices) {
+                                Consumer<Player> closeHandler, List<Pair<Resource, ItemStack>> choices) {
         super(menuType, menuId);
 
         this.stillValid = stillValid;
         this.closeHandler = closeHandler;
-        this.itemStacks.addAll(choices);
+        this.itemStacks = choices;
 
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 9; ++j) {
@@ -52,7 +53,7 @@ public class ResourceSelectorMenu extends AbstractContainerMenu {
         return this.selectedItemStackIndex.get();
     }
 
-    public List<ItemStack> getItemStacks() {
+    public List<Pair<Resource, ItemStack>> getItemStacks() {
         return this.itemStacks;
     }
 
@@ -95,7 +96,10 @@ public class ResourceSelectorMenu extends AbstractContainerMenu {
                 player -> {
 
                 },
-                friendlyByteBuf != null ? friendlyByteBuf.readList(FriendlyByteBuf::readItem) : Collections.emptyList()
+                friendlyByteBuf != null ? friendlyByteBuf.readList(listBuf -> Pair.of(
+                        listBuf.readWithCodec(Resource.CODEC.get()),
+                        listBuf.readItem()
+                )) : Collections.emptyList()
         );
     }
 }

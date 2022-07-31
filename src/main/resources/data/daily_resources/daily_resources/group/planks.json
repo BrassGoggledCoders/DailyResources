@@ -1,0 +1,12 @@
+{
+  "resources": [
+    {
+      "item": "#minecraft:planks",
+      "count": 64
+    },
+    {
+      "item": "minecraft:chest",
+      "count": 8
+    }
+  ]
+}

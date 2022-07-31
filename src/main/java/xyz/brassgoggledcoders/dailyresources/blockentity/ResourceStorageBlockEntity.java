@@ -1,17 +1,16 @@
 package xyz.brassgoggledcoders.dailyresources.blockentity;
 
 import com.google.common.base.Suppliers;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -23,13 +22,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.brassgoggledcoders.dailyresources.DailyResources;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesBlocks;
+import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesResources;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceSelectorMenu;
-import xyz.brassgoggledcoders.dailyresources.menu.ResourceStorageMenu;
-import xyz.brassgoggledcoders.dailyresources.selector.Selector;
+import xyz.brassgoggledcoders.dailyresources.resource.Resource;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -105,8 +103,13 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
                 pInventory,
                 this::stillValid,
                 this::stopOpen,
-                DailyResources.SELECTOR_MANAGER.getEntry(DailyResources.rl("planks"))
-                        .map(Selector::getItemStacks)
+                DailyResources.RESOURCE_GROUP_MANAGER.getEntry(DailyResources.rl("planks"))
+                        .map(resourceGroup -> resourceGroup.getChoicesFor(DailyResourcesResources.ITEMSTACK.get())
+                                .entries()
+                                .stream()
+                                .map(entry -> Pair.of(entry.getKey(), entry.getValue()))
+                                .toList()
+                        )
                         .orElseGet(Collections::emptyList)
         );
     }
@@ -157,15 +160,22 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
     public void openMenu(Player pPlayer) {
         if (pPlayer instanceof ServerPlayer serverPlayer) {
             //TODO HANDLE POST SELECTION
-            List<ItemStack> itemStackList = DailyResources.SELECTOR_MANAGER.getEntry(DailyResources.rl("planks"))
-                    .map(Selector::getItemStacks)
-                    .orElseGet(Collections::emptyList);
             NetworkHooks.openGui(
                     serverPlayer,
                     this,
                     friendlyByteBuf -> friendlyByteBuf.writeCollection(
-                            itemStackList,
-                            FriendlyByteBuf::writeItem
+                            DailyResources.RESOURCE_GROUP_MANAGER.getEntry(DailyResources.rl("planks"))
+                                    .map(resourceGroup -> resourceGroup.getChoicesFor(DailyResourcesResources.ITEMSTACK.get())
+                                            .entries()
+                                            .stream()
+                                            .map(entry -> Pair.of(entry.getKey(), entry.getValue()))
+                                            .toList()
+                                    )
+                                    .orElseGet(Collections::emptyList),
+                            (listByteBuf, pair) -> {
+                                listByteBuf.writeWithCodec(Resource.CODEC.get(), pair.getFirst());
+                                listByteBuf.writeItem(pair.getSecond());
+                            }
                     )
             );
         }

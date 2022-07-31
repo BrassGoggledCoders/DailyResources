@@ -2,6 +2,7 @@ package xyz.brassgoggledcoders.dailyresources.menu;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -15,6 +16,7 @@ import xyz.brassgoggledcoders.dailyresources.resource.Resource;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -25,13 +27,16 @@ public class ResourceSelectorMenu extends AbstractContainerMenu {
 
     private final Predicate<Player> stillValid;
     private final Consumer<Player> closeHandler;
+    private final BiConsumer<Resource, ItemStack> onConfirmed;
 
     public ResourceSelectorMenu(MenuType<?> menuType, int menuId, Inventory inventory, Predicate<Player> stillValid,
-                                Consumer<Player> closeHandler, List<Pair<Resource, ItemStack>> choices) {
+                                Consumer<Player> closeHandler, BiConsumer<Resource, ItemStack> onConfirmed,
+                                List<Pair<Resource, ItemStack>> choices) {
         super(menuType, menuId);
 
         this.stillValid = stillValid;
         this.closeHandler = closeHandler;
+        this.onConfirmed = onConfirmed;
         this.itemStacks = choices;
 
         for (int i = 0; i < 3; ++i) {
@@ -71,7 +76,11 @@ public class ResourceSelectorMenu extends AbstractContainerMenu {
     public boolean clickMenuButton(@NotNull Player pPlayer, int pId) {
         if (pId == -1) {
             if (this.isValidItemStackIndex(this.selectedItemStackIndex.get())) {
-                //TODO allow confirming
+                Pair<Resource, ItemStack> selected = this.getItemStacks().get(this.selectedItemStackIndex.get());
+                this.onConfirmed.accept(selected.getFirst(), selected.getSecond());
+                if (pPlayer instanceof ServerPlayer serverPlayer) {
+                    serverPlayer.closeContainer();
+                }
             } else {
                 return false;
             }
@@ -101,6 +110,9 @@ public class ResourceSelectorMenu extends AbstractContainerMenu {
                 inventory,
                 player -> true,
                 player -> {
+
+                },
+                (resource, itemStack) -> {
 
                 },
                 friendlyByteBuf != null ? friendlyByteBuf.readList(listBuf -> Pair.of(

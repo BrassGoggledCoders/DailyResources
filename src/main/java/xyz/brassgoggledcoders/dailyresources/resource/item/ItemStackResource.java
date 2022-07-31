@@ -1,4 +1,4 @@
-package xyz.brassgoggledcoders.dailyresources.resource;
+package xyz.brassgoggledcoders.dailyresources.resource.item;
 
 import com.google.common.base.Suppliers;
 import com.mojang.datafixers.util.Either;
@@ -13,6 +13,8 @@ import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesResources;
+import xyz.brassgoggledcoders.dailyresources.resource.Resource;
+import xyz.brassgoggledcoders.dailyresources.resource.ResourceType;
 
 import java.util.Collection;
 import java.util.List;
@@ -58,14 +60,14 @@ public class ItemStackResource implements Resource {
     }
 
     @Override
-    public boolean choose(@NotNull ItemStack itemStack) {
+    public boolean contains(@NotNull ItemStack itemStack) {
         return !itemStack.isEmpty() && this.asChoices()
                 .stream()
                 .anyMatch(choice -> ItemStack.matches(choice, itemStack));
     }
 
     @Override
-    public void addToStorage(@NotNull ICapabilityProvider capabilityProvider) {
+    public void addToStorage(@NotNull ItemStack choice, @NotNull ICapabilityProvider capabilityProvider) {
 
     }
 

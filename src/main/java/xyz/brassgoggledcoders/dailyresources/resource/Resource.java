@@ -17,7 +17,7 @@ public interface Resource {
             "type",
             DailyResourcesResources.REGISTRY.get().getCodec(),
             Resource::getResourceType,
-            ResourceType::getCodec
+            ResourceType::getResourceCodec
     ).codec());
 
     @NotNull
@@ -26,7 +26,9 @@ public interface Resource {
     @NotNull
     Collection<ItemStack> asChoices();
 
-    boolean choose(ItemStack itemStack);
+    boolean contains(ItemStack itemStack);
 
-    void addToStorage(@NotNull ICapabilityProvider capabilityProvider);
+    void addToStorage(@NotNull ItemStack choice, @NotNull ICapabilityProvider capabilityProvider);
+
+
 }

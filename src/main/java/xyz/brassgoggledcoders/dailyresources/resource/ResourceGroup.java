@@ -37,4 +37,8 @@ public record ResourceGroup(
         }
         return choices;
     }
+
+    public boolean contains(Resource resource) {
+        return resources().contains(resource);
+    }
 }

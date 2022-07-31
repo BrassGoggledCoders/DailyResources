@@ -1,5 +1,7 @@
 package xyz.brassgoggledcoders.dailyresources.selector;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -23,7 +25,7 @@ import java.util.Optional;
 public class CodecReloadListener<T> extends SimpleJsonResourceReloadListener {
     private final Logger LOGGER = LoggerFactory.getLogger(CodecReloadListener.class);
     private final Codec<T> codec;
-    private final Map<ResourceLocation, T> entries;
+    private final BiMap<ResourceLocation, T> entries;
     private final String path;
 
     private final IContext context;
@@ -33,7 +35,7 @@ public class CodecReloadListener<T> extends SimpleJsonResourceReloadListener {
         this.path = path;
         this.codec = codec;
         this.context = context;
-        this.entries = Maps.newHashMap();
+        this.entries = HashBiMap.create();
     }
 
     @Override
@@ -60,5 +62,9 @@ public class CodecReloadListener<T> extends SimpleJsonResourceReloadListener {
 
     public Optional<T> getEntry(ResourceLocation id) {
         return Optional.ofNullable(entries.get(id));
+    }
+
+    public Optional<ResourceLocation> getId(T resourceGroup) {
+        return Optional.ofNullable(entries.inverse().get(resourceGroup));
     }
 }

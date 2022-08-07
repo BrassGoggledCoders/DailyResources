@@ -1,4 +1,5 @@
 {
+  "trigger": "daily_resources:dawn",
   "resources": [
     {
       "item": "#minecraft:planks",

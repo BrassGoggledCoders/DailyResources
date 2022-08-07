@@ -9,15 +9,19 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.compress.utils.Sets;
+import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesTriggers;
+import xyz.brassgoggledcoders.dailyresources.trigger.Trigger;
 
 import java.util.List;
 import java.util.function.Supplier;
 
 public record ResourceGroup(
-        List<Resource> resources
+        List<Resource> resources,
+        Trigger trigger
 ) {
     public static final Supplier<Codec<ResourceGroup>> CODEC = Suppliers.memoize(() -> RecordCodecBuilder.create(instance -> instance.group(
-            Codec.list(Resource.CODEC.get()).fieldOf("resources").forGetter(ResourceGroup::resources)
+            Codec.list(Resource.CODEC.get()).fieldOf("resources").forGetter(ResourceGroup::resources),
+            DailyResourcesTriggers.REGISTRY.get().getCodec().fieldOf("trigger").forGetter(ResourceGroup::trigger)
     ).apply(instance, ResourceGroup::new)));
 
     public List<Resource> getResourceFor(ResourceType resourceType) {

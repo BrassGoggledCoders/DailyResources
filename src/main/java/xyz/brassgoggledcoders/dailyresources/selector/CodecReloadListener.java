@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class CodecReloadListener<T> extends SimpleJsonResourceReloadListener {
     private final Logger LOGGER = LoggerFactory.getLogger(CodecReloadListener.class);
@@ -30,16 +31,20 @@ public class CodecReloadListener<T> extends SimpleJsonResourceReloadListener {
 
     private final IContext context;
 
+    private int generation;
+
     public CodecReloadListener(Gson gson, String path, Codec<T> codec, IContext context) {
         super(gson, path);
         this.path = path;
         this.codec = codec;
         this.context = context;
         this.entries = HashBiMap.create();
+        this.generation = 0;
     }
 
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> pObject, @NotNull ResourceManager pResourceManager, ProfilerFiller pProfiler) {
+        this.generation++;
         Map<ResourceLocation, T> newEntries = Maps.newHashMap();
         pProfiler.push("Loading from %s".formatted(path));
 
@@ -66,5 +71,14 @@ public class CodecReloadListener<T> extends SimpleJsonResourceReloadListener {
 
     public Optional<ResourceLocation> getId(T resourceGroup) {
         return Optional.ofNullable(entries.inverse().get(resourceGroup));
+    }
+
+    public Stream<Map.Entry<ResourceLocation, T>> getEntries() {
+        return entries.entrySet()
+                .parallelStream();
+    }
+
+    public int getGeneration() {
+        return this.generation;
     }
 }

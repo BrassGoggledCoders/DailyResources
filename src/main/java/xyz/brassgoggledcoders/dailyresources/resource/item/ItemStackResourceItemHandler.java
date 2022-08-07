@@ -129,7 +129,7 @@ public record ItemStackResourceItemHandler(
     }
 
     public static ItemStackResourceItemHandler create(List<ItemStack> list) {
-        NonNullList<ItemStack> itemStackList = NonNullList.withSize(list.size(), ItemStack.EMPTY);
+        NonNullList<ItemStack> itemStackList = NonNullList.create();
         itemStackList.addAll(list);
         return new ItemStackResourceItemHandler(itemStackList);
     }

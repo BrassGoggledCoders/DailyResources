@@ -32,4 +32,6 @@ public abstract class ResourceStorage implements ICapabilityProvider {
     public abstract ResourceType getResourceType();
 
     public abstract void invalidateCapabilities();
+
+    public abstract void trigger();
 }

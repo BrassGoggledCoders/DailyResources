@@ -174,7 +174,7 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
                 .orElseGet(Collections::emptyList);
     }
 
-    private void onConfirmed(Resource resource, ItemStack itemStack) {
+    private Void onConfirmed(Resource resource, ItemStack itemStack, UUID owner) {
         this.getResourceStorageStorage()
                 .filter(resourceStorageStorage -> !resourceStorageStorage.hasResourceSource(this.getUniqueId()))
                 .ifPresent(resourceStorageStorage -> resourceStorageStorage.createResourceStorage(
@@ -183,13 +183,15 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
                                 new ResourceStorageInfo(
                                         this.resourceGroup,
                                         resource,
-                                        itemStack
+                                        itemStack,
+                                        owner
                                 ),
                                 new ItemStackResourceItemHandler(
                                         NonNullList.withSize(27, ItemStack.EMPTY)
                                 )
                         )
                 ));
+        return null;
     }
 
     public boolean stillValid(Player pPlayer) {

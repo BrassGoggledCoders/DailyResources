@@ -4,10 +4,12 @@ import com.google.common.base.Suppliers;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemHandlerHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorage;
@@ -54,5 +56,11 @@ public class ItemStackResourceStorage extends ResourceStorage {
     @Override
     public ResourceType getResourceType() {
         return DailyResourcesResources.ITEMSTACK.get();
+    }
+
+    @Override
+    public void trigger() {
+        ItemStack itemStack = this.getInfo().choice().copy();
+        ItemHandlerHelper.insertItemStacked(this.getItemHandler(), itemStack, false);
     }
 }

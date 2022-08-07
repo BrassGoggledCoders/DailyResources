@@ -1,5 +1,6 @@
 package xyz.brassgoggledcoders.dailyresources.menu;
 
+import com.mojang.datafixers.util.Function3;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,7 +17,7 @@ import xyz.brassgoggledcoders.dailyresources.resource.Resource;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.BiConsumer;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -27,10 +28,10 @@ public class ResourceSelectorMenu extends AbstractContainerMenu {
 
     private final Predicate<Player> stillValid;
     private final Consumer<Player> closeHandler;
-    private final BiConsumer<Resource, ItemStack> onConfirmed;
+    private final Function3<Resource, ItemStack, UUID, Void> onConfirmed;
 
     public ResourceSelectorMenu(MenuType<?> menuType, int menuId, Inventory inventory, Predicate<Player> stillValid,
-                                Consumer<Player> closeHandler, BiConsumer<Resource, ItemStack> onConfirmed,
+                                Consumer<Player> closeHandler, Function3<Resource, ItemStack, UUID, Void> onConfirmed,
                                 List<Pair<Resource, ItemStack>> choices) {
         super(menuType, menuId);
 
@@ -77,7 +78,7 @@ public class ResourceSelectorMenu extends AbstractContainerMenu {
         if (pId == -1) {
             if (this.isValidItemStackIndex(this.selectedItemStackIndex.get())) {
                 Pair<Resource, ItemStack> selected = this.getItemStacks().get(this.selectedItemStackIndex.get());
-                this.onConfirmed.accept(selected.getFirst(), selected.getSecond());
+                this.onConfirmed.apply(selected.getFirst(), selected.getSecond(), pPlayer.getUUID());
                 if (pPlayer instanceof ServerPlayer serverPlayer) {
                     serverPlayer.closeContainer();
                 }
@@ -112,9 +113,7 @@ public class ResourceSelectorMenu extends AbstractContainerMenu {
                 player -> {
 
                 },
-                (resource, itemStack) -> {
-
-                },
+                (resource, itemStack, owner) -> null,
                 friendlyByteBuf != null ? friendlyByteBuf.readList(listBuf -> Pair.of(
                         listBuf.readWithCodec(Resource.CODEC.get()),
                         listBuf.readItem()

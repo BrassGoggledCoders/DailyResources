@@ -3,6 +3,8 @@ package xyz.brassgoggledcoders.dailyresources.content;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.entry.MenuEntry;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.material.Material;
 import net.minecraftforge.client.model.generators.ModelFile;
@@ -23,6 +25,7 @@ public class DailyResourcesBlocks {
             .properties(properties -> properties.strength(2.5F)
                     .sound(SoundType.WOOD)
             )
+            .addLayer(() -> RenderType::cutout)
             .blockstate((context, provider) -> {
                 ModelFile openBarrel = provider.models().cubeBottomTop(
                         "block/barrel_open",
@@ -51,7 +54,7 @@ public class DailyResourcesBlocks {
     public static final BlockEntityEntry<ResourceStorageBlockEntity> STORAGE_BLOCK_ENTITY =
             DailyResources.getRegistrate()
                     .object("storage")
-                    .<ResourceStorageBlockEntity>blockEntity(ResourceStorageBlockEntity::new)
+                    .blockEntity(ResourceStorageBlockEntity::new)
                     .validBlock(BARREL)
                     .register();
 

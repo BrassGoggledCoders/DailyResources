@@ -6,7 +6,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,9 +20,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.client.model.data.IModelData;
+import net.minecraftforge.client.model.data.ModelDataMap;
+import net.minecraftforge.client.model.data.ModelProperty;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
@@ -31,27 +39,43 @@ import xyz.brassgoggledcoders.dailyresources.DailyResources;
 import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorageStorage;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesBlocks;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesResources;
+import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesTriggers;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceSelectorMenu;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceStorageMenu;
 import xyz.brassgoggledcoders.dailyresources.resource.Resource;
+import xyz.brassgoggledcoders.dailyresources.resource.ResourceGroup;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceStorageInfo;
 import xyz.brassgoggledcoders.dailyresources.resource.item.ItemStackResourceItemHandler;
 import xyz.brassgoggledcoders.dailyresources.resource.item.ItemStackResourceStorage;
+import xyz.brassgoggledcoders.dailyresources.trigger.Trigger;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 import java.util.function.Supplier;
 
 public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvider {
+    public final static ModelProperty<Trigger> TRIGGER_PROPERTY = new ModelProperty<>();
     private final Supplier<ResourceStorageOpenersCounter> containerOpenersCounter;
     private UUID uniqueId;
     private Component customName;
     private ResourceLocation resourceGroup;
+    private Trigger trigger;
     private LazyOptional<ResourceStorageStorage> storageLazyOptional;
 
     public ResourceStorageBlockEntity(BlockEntityType<?> pType, BlockPos pWorldPosition, BlockState pBlockState) {
         super(pType, pWorldPosition, pBlockState);
         this.containerOpenersCounter = Suppliers.memoize(() -> new ResourceStorageOpenersCounter(Objects.requireNonNull(this.getUniqueId())));
+    }
+
+    @Nullable
+    public Trigger getTrigger() {
+        if (this.trigger == null && this.getLevel() instanceof ServerLevel) {
+            this.trigger = Optional.ofNullable(this.resourceGroup)
+                    .flatMap(DailyResources.RESOURCE_GROUP_MANAGER::getEntry)
+                    .map(ResourceGroup::trigger)
+                    .orElseGet(DailyResourcesTriggers.NONE);
+        }
+        return this.trigger;
     }
 
     @NotNull
@@ -231,11 +255,54 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
         }
     }
 
+    @Override
+    @NotNull
+    public CompoundTag getUpdateTag() {
+        CompoundTag tag = super.getUpdateTag();
+        Optional.ofNullable(this.getTrigger())
+                .map(Trigger::getRegistryName)
+                .map(ResourceLocation::toString)
+                .ifPresent(triggerName -> tag.putString("Trigger", triggerName));
+        return tag;
+    }
+
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+        CompoundTag tag = pkt.getTag();
+        if (tag != null) {
+            this.handleUpdateTag(tag);
+        }
+    }
+
+    @Override
+    public void handleUpdateTag(CompoundTag tag) {
+        super.handleUpdateTag(tag);
+        if (tag.contains("Trigger")) {
+            this.trigger = DailyResourcesTriggers.REGISTRY.get().getValue(new ResourceLocation(tag.getString("Trigger")));
+            requestModelDataUpdate();
+            if (level != null) {
+                level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), Block.UPDATE_ALL);
+            }
+        }
+    }
+
     public UUID getUniqueId() {
         if (this.uniqueId == null) {
             this.uniqueId = UUID.randomUUID();
         }
         return uniqueId;
+    }
+
+    @NotNull
+    @Override
+    public IModelData getModelData() {
+        return new ModelDataMap.Builder()
+                .withInitial(TRIGGER_PROPERTY, this.getTrigger())
+                .build();
     }
 
     public int calculateComparator() {

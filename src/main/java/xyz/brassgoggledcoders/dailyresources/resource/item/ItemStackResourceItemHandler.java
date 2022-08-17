@@ -133,4 +133,10 @@ public record ItemStackResourceItemHandler(
         itemStackList.addAll(list);
         return new ItemStackResourceItemHandler(itemStackList);
     }
+
+    public static ItemStackResourceItemHandler create(int size) {
+        return new ItemStackResourceItemHandler(
+                NonNullList.withSize(size, ItemStack.EMPTY)
+        );
+    }
 }

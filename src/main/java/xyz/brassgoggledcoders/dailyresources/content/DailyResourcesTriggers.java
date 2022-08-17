@@ -37,6 +37,10 @@ public class DailyResourcesTriggers {
             .object("dreamer")
             .simple(Trigger.class, () -> new Trigger(new ResourceLocation("block/red_wool")));
 
+    public static final RegistryEntry<Trigger> ANY = DailyResources.getRegistrate()
+            .object("any")
+            .simple(Trigger.class, () -> new Trigger(new ResourceLocation("item/barrier")));
+
     public static final RegistryEntry<Trigger> NONE = DailyResources.getRegistrate()
             .object("none")
             .simple(Trigger.class, () -> new Trigger(new ResourceLocation("item/barrier")));

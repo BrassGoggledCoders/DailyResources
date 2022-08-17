@@ -4,8 +4,9 @@ import com.google.common.base.Suppliers;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
@@ -36,15 +37,16 @@ import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.brassgoggledcoders.dailyresources.DailyResources;
+import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorage;
 import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorageStorage;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesBlocks;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesResources;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesTriggers;
+import xyz.brassgoggledcoders.dailyresources.menu.Choice;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceSelectorMenu;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceStorageMenu;
-import xyz.brassgoggledcoders.dailyresources.resource.Resource;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceGroup;
-import xyz.brassgoggledcoders.dailyresources.resource.ResourceStorageInfo;
+import xyz.brassgoggledcoders.dailyresources.resource.ResourceStorageSelection;
 import xyz.brassgoggledcoders.dailyresources.resource.item.ItemStackResourceItemHandler;
 import xyz.brassgoggledcoders.dailyresources.resource.item.ItemStackResourceStorage;
 import xyz.brassgoggledcoders.dailyresources.trigger.Trigger;
@@ -58,8 +60,9 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
     private final Supplier<ResourceStorageOpenersCounter> containerOpenersCounter;
     private UUID uniqueId;
     private Component customName;
-    private ResourceLocation resourceGroup;
+    private Map<UUID, ResourceLocation> resourceGroups;
     private Trigger trigger;
+    private Trigger nbtTrigger;
     private LazyOptional<ResourceStorageStorage> storageLazyOptional;
 
     public ResourceStorageBlockEntity(BlockEntityType<?> pType, BlockPos pWorldPosition, BlockState pBlockState) {
@@ -69,10 +72,19 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
 
     @Nullable
     public Trigger getTrigger() {
+        if (this.nbtTrigger != null) {
+            return this.nbtTrigger;
+        }
         if (this.trigger == null && this.getLevel() instanceof ServerLevel) {
-            this.trigger = Optional.ofNullable(this.resourceGroup)
-                    .flatMap(DailyResources.RESOURCE_GROUP_MANAGER::getEntry)
+            this.trigger = Optional.ofNullable(this.resourceGroups)
+                    .stream()
+                    .parallel()
+                    .flatMap(map -> map.values().stream())
+                    .distinct()
+                    .map(DailyResources.RESOURCE_GROUP_MANAGER::getEntry)
+                    .flatMap(Optional::stream)
                     .map(ResourceGroup::trigger)
+                    .reduce(Trigger::merge)
                     .orElseGet(DailyResourcesTriggers.NONE);
         }
         return this.trigger;
@@ -174,48 +186,48 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
                     this::stopOpen
             );
         } else {
-            return new ResourceSelectorMenu(
-                    DailyResourcesBlocks.SELECTOR_MENU.get(),
+            return new ResourceSelectorMenu<>(
+                    DailyResourcesBlocks.ITEM_SELECTOR_MENU.get(),
                     pContainerId,
                     pInventory,
                     this::stillValid,
                     this::stopOpen,
                     this::onConfirmed,
-                    this.getChoices()
+                    this.getGroupsForChoices(),
+                    DailyResourcesResources.ITEMSTACK.get()
             );
         }
     }
 
-    private List<Pair<Resource, ItemStack>> getChoices() {
-        return Optional.ofNullable(this.resourceGroup)
-                .flatMap(DailyResources.RESOURCE_GROUP_MANAGER::getEntry)
-                .map(resourceGroup -> resourceGroup.getChoicesFor(DailyResourcesResources.ITEMSTACK.get())
-                        .entries()
-                        .stream()
-                        .map(entry -> Pair.of(entry.getKey(), entry.getValue()))
-                        .toList()
+    private List<Pair<UUID, ResourceGroup>> getGroupsForChoices() {
+        return Optional.ofNullable(this.resourceGroups)
+                .stream()
+                .flatMap(map -> map.entrySet().stream())
+                .map(entry -> DailyResources.RESOURCE_GROUP_MANAGER.getEntry(entry.getValue())
+                        .map(group -> Pair.of(entry.getKey(), group))
                 )
-                .orElseGet(Collections::emptyList);
+                .flatMap(Optional::stream)
+                .toList();
     }
 
-    private Void onConfirmed(Resource resource, ItemStack itemStack, UUID owner) {
-        this.getResourceStorageStorage()
-                .filter(resourceStorageStorage -> !resourceStorageStorage.hasResourceSource(this.getUniqueId()))
-                .ifPresent(resourceStorageStorage -> resourceStorageStorage.createResourceStorage(
-                        this.getUniqueId(),
-                        new ItemStackResourceStorage(
-                                new ResourceStorageInfo(
-                                        this.resourceGroup,
-                                        resource,
-                                        itemStack,
-                                        owner
-                                ),
-                                new ItemStackResourceItemHandler(
-                                        NonNullList.withSize(27, ItemStack.EMPTY)
-                                )
-                        )
-                ));
-        return null;
+    private boolean onConfirmed(UUID id, ResourceGroup resourceGroup, Choice<ItemStack> choice, UUID owner) {
+        Optional<ResourceLocation> resourceGroupId = DailyResources.RESOURCE_GROUP_MANAGER.getId(resourceGroup);
+
+        return resourceGroupId.isPresent() && this.getResourceStorageStorage()
+                .map(resourceStorageStorage -> {
+                    ResourceStorage resourceStorage = resourceStorageStorage.getOrCreateResourceStorage(
+                            this.getUniqueId(),
+                            () -> new ItemStackResourceStorage(ItemStackResourceItemHandler.create(27))
+                    );
+
+                    return resourceStorage.addSelection(new ResourceStorageSelection<>(
+                            id,
+                            resourceGroupId.get(),
+                            choice,
+                            owner
+                    ));
+                })
+                .orElse(false);
     }
 
     public boolean stillValid(Player pPlayer) {
@@ -241,8 +253,25 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
         if (pTag.contains("UniqueId")) {
             this.uniqueId = pTag.getUUID("UniqueId");
         }
+        if (pTag.contains("Trigger")) {
+            this.nbtTrigger = DailyResourcesTriggers.REGISTRY.get()
+                    .getValue(new ResourceLocation(pTag.getString("Trigger")));
+        }
         if (pTag.contains("ResourceGroup")) {
-            this.resourceGroup = new ResourceLocation(pTag.getString("ResourceGroup"));
+            this.resourceGroups = new HashMap<>();
+            this.resourceGroups.put(UUID.randomUUID(), new ResourceLocation(pTag.getString("ResourceGroup")));
+        } else if (pTag.contains("ResourceGroups", Tag.TAG_LIST)) {
+            this.resourceGroups = new HashMap<>();
+            ListTag listTag = pTag.getList("ResourceGroups", Tag.TAG_STRING);
+            for (int i = 0; i < listTag.size(); i++) {
+                this.resourceGroups.put(UUID.randomUUID(), new ResourceLocation(listTag.getString(i)));
+            }
+        } else if (pTag.contains("ResourceGroups", Tag.TAG_COMPOUND)) {
+            this.resourceGroups = new HashMap<>();
+            CompoundTag tag = pTag.getCompound("ResourceGroups");
+            for (String key : tag.getAllKeys()) {
+                this.resourceGroups.put(UUID.fromString(key), new ResourceLocation(tag.getString(key)));
+            }
         }
     }
 
@@ -250,8 +279,14 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
     protected void saveAdditional(@NotNull CompoundTag pTag) {
         super.saveAdditional(pTag);
         pTag.putUUID("UniqueId", this.getUniqueId());
-        if (this.resourceGroup != null) {
-            pTag.putString("ResourceGroup", this.resourceGroup.toString());
+        if (this.resourceGroups != null) {
+            CompoundTag compoundTag = new CompoundTag();
+            for (Map.Entry<UUID, ResourceLocation> entry : this.resourceGroups.entrySet()) {
+                compoundTag.putString(entry.getKey().toString(), entry.getValue().toString());
+            }
+        }
+        if (this.nbtTrigger != null) {
+            pTag.putString("Trigger", Objects.requireNonNull(this.nbtTrigger.getRegistryName()).toString());
         }
     }
 
@@ -319,12 +354,11 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
                     friendlyByteBuf -> {
                         if (!this.hasGroupSelection()) {
                             friendlyByteBuf.writeCollection(
-                                    this.getChoices(),
+                                    this.getGroupsForChoices(),
                                     (listByteBuf, pair) -> {
-                                        listByteBuf.writeWithCodec(Resource.CODEC.get(), pair.getFirst());
-                                        listByteBuf.writeItem(pair.getSecond());
+                                        listByteBuf.writeUUID(pair.getFirst());
+                                        listByteBuf.writeWithCodec(ResourceGroup.CODEC.get(), pair.getSecond());
                                     }
-
                             );
                         }
                     }

@@ -2,7 +2,6 @@ package xyz.brassgoggledcoders.dailyresources.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Widget;
@@ -16,16 +15,15 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import xyz.brassgoggledcoders.dailyresources.DailyResources;
+import xyz.brassgoggledcoders.dailyresources.menu.Choice;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceSelectorMenu;
-import xyz.brassgoggledcoders.dailyresources.resource.Resource;
 
 import java.util.List;
 import java.util.Objects;
 
-public class ResourceSelectorScreen extends AbstractContainerScreen<ResourceSelectorMenu> {
+public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceSelectorMenu<T>> {
     private static final ResourceLocation BG_LOCATION = DailyResources.rl("textures/screen/resource_selector.png");
 
     private float scrollOffs;
@@ -34,7 +32,7 @@ public class ResourceSelectorScreen extends AbstractContainerScreen<ResourceSele
 
     private int startIndex;
 
-    public ResourceSelectorScreen(ResourceSelectorMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
+    public ResourceSelectorScreen(ResourceSelectorMenu<T> pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
         --this.titleLabelY;
     }
@@ -61,7 +59,7 @@ public class ResourceSelectorScreen extends AbstractContainerScreen<ResourceSele
     @Override
     public void render(@NotNull PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
-        for(Widget widget : this.renderables) {
+        for (Widget widget : this.renderables) {
             widget.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         }
         this.renderTooltip(pPoseStack, pMouseX, pMouseY);
@@ -91,14 +89,14 @@ public class ResourceSelectorScreen extends AbstractContainerScreen<ResourceSele
         int i = this.leftPos + 52;
         int j = this.topPos + 14;
         int k = this.startIndex + 12;
-        List<Pair<Resource, ItemStack>> list = this.menu.getItemStacks();
+        List<Choice<T>> list = this.menu.getChoices();
 
         for (int l = this.startIndex; l < k && l < this.menu.getNumItemStacks(); ++l) {
             int i1 = l - this.startIndex;
             int j1 = i + i1 % 4 * 16;
             int k1 = j + i1 / 4 * 18 + 2;
             if (pX >= j1 && pX < j1 + 16 && pY >= k1 && pY < k1 + 18) {
-                this.renderTooltip(pPoseStack, list.get(l).getSecond(), pX, pY);
+                this.renderTooltip(pPoseStack, list.get(l).asItemStack(), pX, pY);
             }
         }
     }
@@ -110,7 +108,7 @@ public class ResourceSelectorScreen extends AbstractContainerScreen<ResourceSele
             int l = j / 4;
             int i1 = pY + l * 18 + 2;
             int j1 = this.imageHeight;
-            if (i == this.menu.getSelectedItemStackIndex()) {
+            if (i == this.menu.getSelectedChoiceIndex()) {
                 j1 += 18;
             } else if (pMouseX >= k && pMouseY >= i1 && pMouseX < k + 16 && pMouseY < i1 + 18) {
                 j1 += 36;
@@ -122,15 +120,15 @@ public class ResourceSelectorScreen extends AbstractContainerScreen<ResourceSele
     }
 
     private void renderItemStacks(int pLeft, int pTop, int pIndexOffsetMax) {
-        List<Pair<Resource, ItemStack>> list = this.menu.getItemStacks();
+        List<Choice<T>> list = this.menu.getChoices();
 
         for (int i = this.startIndex; i < pIndexOffsetMax && i < this.menu.getNumItemStacks(); ++i) {
             int j = i - this.startIndex;
             int k = pLeft + j % 4 * 16;
             int l = j / 4;
             int i1 = pTop + l * 18 + 2;
-            this.itemRenderer.renderAndDecorateItem(list.get(i).getSecond(), k, i1);
-            this.itemRenderer.renderGuiItemDecorations(this.font, list.get(i).getSecond(), k, i1, null);
+            this.itemRenderer.renderAndDecorateItem(list.get(i).asItemStack(), k, i1);
+            this.itemRenderer.renderGuiItemDecorations(this.font, list.get(i).asItemStack(), k, i1, null);
         }
 
     }

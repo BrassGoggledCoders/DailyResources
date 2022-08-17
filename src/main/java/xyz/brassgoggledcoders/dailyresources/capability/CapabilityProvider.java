@@ -2,7 +2,6 @@ package xyz.brassgoggledcoders.dailyresources.capability;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraftforge.common.capabilities.Capability;
@@ -12,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.brassgoggledcoders.dailyresources.DailyResources;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class CapabilityProvider<T, U extends T> implements ICapabilitySerializable<Tag> {
@@ -19,13 +19,15 @@ public class CapabilityProvider<T, U extends T> implements ICapabilitySerializab
     private final Codec<U> codec;
     private final LazyOptional<T> lazyOptional;
     private final Supplier<U> defaultSupplier;
+    private final Consumer<U> onInvalidate;
 
     private U value;
 
-    public CapabilityProvider(Capability<T> capability, Codec<U> codec, Supplier<U> defaultSupplier) {
+    public CapabilityProvider(Capability<T> capability, Codec<U> codec, Supplier<U> defaultSupplier, Consumer<U> onInvalidate) {
         this.capability = capability;
         this.codec = codec;
         this.defaultSupplier = defaultSupplier;
+        this.onInvalidate = onInvalidate;
         this.lazyOptional = LazyOptional.of(this::getValue);
     }
 
@@ -57,5 +59,6 @@ public class CapabilityProvider<T, U extends T> implements ICapabilitySerializab
 
     public void invalidate() {
         this.lazyOptional.invalidate();
+        this.onInvalidate.accept(this.getValue());
     }
 }

@@ -4,7 +4,7 @@ import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.entry.MenuEntry;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.material.Material;
 import net.minecraftforge.client.model.generators.ModelFile;
@@ -63,9 +63,12 @@ public class DailyResourcesBlocks {
             .menu(ResourceStorageMenu::create, () -> ResourceStorageScreen::new)
             .register();
 
-    public static final MenuEntry<ResourceSelectorMenu> SELECTOR_MENU = DailyResources.getRegistrate()
+    public static final MenuEntry<ResourceSelectorMenu<ItemStack>> ITEM_SELECTOR_MENU = DailyResources.getRegistrate()
             .object("selector")
-            .menu(ResourceSelectorMenu::create, () -> ResourceSelectorScreen::new)
+            .<ResourceSelectorMenu<ItemStack>, ResourceSelectorScreen<ItemStack>>menu(
+                    ResourceSelectorMenu::createItem,
+                    () -> ResourceSelectorScreen::new
+            )
             .register();
 
     public static void setup() {

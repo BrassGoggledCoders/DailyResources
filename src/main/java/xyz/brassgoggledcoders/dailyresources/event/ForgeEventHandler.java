@@ -47,7 +47,8 @@ public class ForgeEventHandler {
                 CapabilityProvider<ResourceStorageStorage, ResourceStorageStorage> provider = new CapabilityProvider<>(
                         ResourceStorageStorage.CAP,
                         ResourceStorageStorage.CODEC.get(),
-                        ResourceStorageStorage::new
+                        ResourceStorageStorage::new,
+                        ResourceStorageStorage::invalidate
                 );
                 event.addListener(provider::invalidate);
                 event.addCapability(DailyResources.rl("resource_storage_storage"), provider);

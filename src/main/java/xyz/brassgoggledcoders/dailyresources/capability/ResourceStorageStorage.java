@@ -1,6 +1,7 @@
 package xyz.brassgoggledcoders.dailyresources.capability;
 
 import com.google.common.base.Suppliers;
+import com.google.common.collect.Maps;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.resources.ResourceLocation;
@@ -24,8 +25,11 @@ public class ResourceStorageStorage {
             RecordCodecBuilder.create(instance -> instance.group(
                     Codec.unboundedMap(Codecs.UNIQUE_ID, ResourceStorage.CODEC.get())
                             .fieldOf("resourceStorages")
-                            .forGetter(ResourceStorageStorage::getResourceStorages)
-            ).apply(instance, ResourceStorageStorage::new))
+                            .forGetter(ResourceStorageStorage::getResourceStorages),
+                    Codec.unboundedMap(Codecs.UNIQUE_ID, Codec.list(ResourceStorageSelection.CODEC.get()))
+                            .fieldOf("resourceSelections")
+                            .forGetter(ResourceStorageStorage::getSelections)
+            ).apply(instance, ResourceStorageStorage::read))
     );
 
     private int generation;
@@ -39,12 +43,8 @@ public class ResourceStorageStorage {
     }
 
     public ResourceStorageStorage(Map<UUID, ResourceStorage> resourceStorages) {
-        this.resourceStorages = new HashMap<>(resourceStorages);
+        this.resourceStorages = resourceStorages;
         this.cachedTriggered = new IdentityHashMap<>();
-    }
-
-    public boolean hasResourceSource(UUID uniqueId) {
-        return resourceStorages.containsKey(uniqueId);
     }
 
     public ResourceStorage createResourceStorage(UUID uniqueId, ResourceStorage storage) {
@@ -122,7 +122,36 @@ public class ResourceStorageStorage {
                 .toList();
     }
 
+    private Map<UUID, List<ResourceStorageSelection<?>>> getSelections() {
+        Map<UUID, List<ResourceStorageSelection<?>>> selections = Maps.newHashMap();
+        for (Map.Entry<UUID, ResourceStorage> resourceStorageEntry : this.resourceStorages.entrySet()) {
+            if (!resourceStorageEntry.getValue().getSelections().isEmpty()) {
+                selections.put(
+                        resourceStorageEntry.getKey(),
+                        new ArrayList<>(resourceStorageEntry.getValue().getSelections())
+                );
+            }
+        }
+        return selections;
+    }
+
     public void invalidate() {
         this.resourceStorages.values().forEach(ResourceStorage::invalidateCapabilities);
+    }
+
+    public static ResourceStorageStorage read(
+            Map<UUID, ResourceStorage> storages,
+            Map<UUID, List<ResourceStorageSelection<?>>> selections
+    ) {
+        for (Map.Entry<UUID, ResourceStorage> entry : storages.entrySet()) {
+            List<ResourceStorageSelection<?>> list = selections.get(entry.getKey());
+            if (list != null) {
+                list.forEach(entry.getValue()::addSelection);
+            }
+        }
+
+        return new ResourceStorageStorage(
+                new HashMap<>(storages)
+        );
     }
 }

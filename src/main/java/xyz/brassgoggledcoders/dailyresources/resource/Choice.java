@@ -1,14 +1,19 @@
-package xyz.brassgoggledcoders.dailyresources.menu;
+package xyz.brassgoggledcoders.dailyresources.resource;
 
 import com.google.common.base.Suppliers;
+import com.mojang.serialization.Codec;
 import net.minecraft.world.item.ItemStack;
-import xyz.brassgoggledcoders.dailyresources.resource.Resource;
-import xyz.brassgoggledcoders.dailyresources.resource.ResourceType;
 
-import java.util.Optional;
 import java.util.function.Supplier;
 
 public class Choice<T> {
+    public static final Supplier<Codec<Choice<?>>> CODEC = Suppliers.memoize(() -> Resource.CODEC.get()
+            .dispatch(
+                    Choice::getResource,
+                    Resource::getChoiceCodec
+            )
+    );
+
     private final Resource<T> resource;
     private final T object;
     private final Supplier<ItemStack> asItemStack;

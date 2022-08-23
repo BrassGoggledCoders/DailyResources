@@ -47,4 +47,8 @@ public abstract class ResourceStorage implements ICapabilityProvider {
             return true;
         }
     }
+
+    public boolean hasSelection(UUID uuid) {
+        return this.selections.containsKey(uuid);
+    }
 }

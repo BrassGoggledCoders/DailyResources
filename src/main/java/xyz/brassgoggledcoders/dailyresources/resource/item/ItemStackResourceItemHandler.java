@@ -5,7 +5,9 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemHandlerHelper;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -13,7 +15,7 @@ import java.util.List;
 
 public record ItemStackResourceItemHandler(
         NonNullList<ItemStack> itemStacks
-) implements IItemHandler {
+) implements IItemHandlerModifiable {
     public static final Codec<ItemStackResourceItemHandler> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.list(ItemStack.CODEC).fieldOf("itemStacks").forGetter(ItemStackResourceItemHandler::getItemStackList)
     ).apply(instance, ItemStackResourceItemHandler::create));
@@ -126,6 +128,12 @@ public record ItemStackResourceItemHandler(
     private void validateSlotIndex(int slot) {
         if (slot < 0 || slot >= itemStacks().size())
             throw new RuntimeException("Slot " + slot + " not in valid range - [0," + itemStacks().size() + ")");
+    }
+
+    @Override
+    public void setStackInSlot(int slot, @NotNull ItemStack stack) {
+        validateSlotIndex(slot);
+        this.itemStacks().set(slot, stack);
     }
 
     public static ItemStackResourceItemHandler create(List<ItemStack> list) {

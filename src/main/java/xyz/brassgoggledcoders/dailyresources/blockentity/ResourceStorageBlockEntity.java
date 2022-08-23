@@ -32,6 +32,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
@@ -42,9 +43,9 @@ import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorageStorage;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesBlocks;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesResources;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesTriggers;
-import xyz.brassgoggledcoders.dailyresources.menu.Choice;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceSelectorMenu;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceStorageMenu;
+import xyz.brassgoggledcoders.dailyresources.resource.Choice;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceGroup;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceStorageSelection;
 import xyz.brassgoggledcoders.dailyresources.resource.item.ItemStackResourceItemHandler;
@@ -53,6 +54,7 @@ import xyz.brassgoggledcoders.dailyresources.trigger.Trigger;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvider {
@@ -77,9 +79,9 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
         }
         if (this.trigger == null && this.getLevel() instanceof ServerLevel) {
             this.trigger = Optional.ofNullable(this.resourceGroups)
+                    .map(Map::values)
                     .stream()
-                    .parallel()
-                    .flatMap(map -> map.values().stream())
+                    .flatMap(Collection::stream)
                     .distinct()
                     .map(DailyResources.RESOURCE_GROUP_MANAGER::getEntry)
                     .flatMap(Optional::stream)
@@ -155,19 +157,13 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
         this.storageLazyOptional = null;
     }
 
-    private boolean hasGroupSelection() {
-        return this.getResourceStorageStorage()
-                .filter(storage -> storage.hasResourceSource(this.getUniqueId()))
-                .isPresent();
-    }
-
     private IItemHandler getHandler() {
         return this.getResourceStorageStorage()
                 .resolve()
                 .flatMap(storage -> storage.getCapability(this.getUniqueId(), CapabilityItemHandler.ITEM_HANDLER_CAPABILITY)
                         .resolve()
                 )
-                .orElseGet(() -> new ItemStackHandler(27));
+                .orElseThrow();
     }
 
     @Nullable
@@ -175,7 +171,8 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
     @ParametersAreNonnullByDefault
     public AbstractContainerMenu createMenu(int pContainerId, Inventory pInventory, Player pPlayer) {
         this.startOpen(pPlayer);
-        if (this.hasGroupSelection()) {
+        List<Pair<UUID, ResourceGroup>> toPick = this.getGroupsForChoices();
+        if (toPick.isEmpty()) {
             return new ResourceStorageMenu(
                     DailyResourcesBlocks.STORAGE_MENU.get(),
                     pContainerId,
@@ -193,16 +190,22 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
                     this::stillValid,
                     this::stopOpen,
                     this::onConfirmed,
-                    this.getGroupsForChoices(),
+                    toPick,
                     DailyResourcesResources.ITEMSTACK.get()
             );
         }
     }
 
     private List<Pair<UUID, ResourceGroup>> getGroupsForChoices() {
+        Predicate<UUID> predicate = this.getResourceStorageStorage()
+                .resolve()
+                .map(storage -> storage.getResourceStorage(this.getUniqueId()))
+                .map(storage -> Predicate.not(storage::hasSelection))
+                .orElseGet(() -> entry -> true);
         return Optional.ofNullable(this.resourceGroups)
                 .stream()
                 .flatMap(map -> map.entrySet().stream())
+                .filter(entry -> predicate.test(entry.getKey()))
                 .map(entry -> DailyResources.RESOURCE_GROUP_MANAGER.getEntry(entry.getValue())
                         .map(group -> Pair.of(entry.getKey(), group))
                 )
@@ -250,6 +253,7 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
     @Override
     public void load(@NotNull CompoundTag pTag) {
         super.load(pTag);
+        this.trigger = null;
         if (pTag.contains("UniqueId")) {
             this.uniqueId = pTag.getUUID("UniqueId");
         }
@@ -280,10 +284,11 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
         super.saveAdditional(pTag);
         pTag.putUUID("UniqueId", this.getUniqueId());
         if (this.resourceGroups != null) {
-            CompoundTag compoundTag = new CompoundTag();
+            CompoundTag resourceGroupTag = new CompoundTag();
             for (Map.Entry<UUID, ResourceLocation> entry : this.resourceGroups.entrySet()) {
-                compoundTag.putString(entry.getKey().toString(), entry.getValue().toString());
+                resourceGroupTag.putString(entry.getKey().toString(), entry.getValue().toString());
             }
+            pTag.put("ResourceGroups", resourceGroupTag);
         }
         if (this.nbtTrigger != null) {
             pTag.putString("Trigger", Objects.requireNonNull(this.nbtTrigger.getRegistryName()).toString());
@@ -341,20 +346,19 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public int calculateComparator() {
-        //TODO CALC
-        return 0;
+        return ItemHandlerHelper.calcRedstoneFromInventory(this.getHandler());
     }
 
     public void openMenu(Player pPlayer) {
         if (pPlayer instanceof ServerPlayer serverPlayer) {
-            //TODO HANDLE POST SELECTION
             NetworkHooks.openGui(
                     serverPlayer,
                     this,
                     friendlyByteBuf -> {
-                        if (!this.hasGroupSelection()) {
+                        List<Pair<UUID, ResourceGroup>> choices = this.getGroupsForChoices();
+                        if (!choices.isEmpty()) {
                             friendlyByteBuf.writeCollection(
-                                    this.getGroupsForChoices(),
+                                    choices,
                                     (listByteBuf, pair) -> {
                                         listByteBuf.writeUUID(pair.getFirst());
                                         listByteBuf.writeWithCodec(ResourceGroup.CODEC.get(), pair.getSecond());

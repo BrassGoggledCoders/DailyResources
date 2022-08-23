@@ -10,6 +10,7 @@ import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import xyz.brassgoggledcoders.dailyresources.menu.slot.NoPlaceSlot;
 
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -34,7 +35,7 @@ public class ResourceStorageMenu extends AbstractContainerMenu {
 
         for (int j = 0; j < containerRows; ++j) {
             for (int k = 0; k < 9; ++k) {
-                this.addSlot(new SlotItemHandler(storageInventory, k + j * 9, 8 + k * 18, 18 + j * 18));
+                this.addSlot(new NoPlaceSlot(storageInventory, k + j * 9, 8 + k * 18, 18 + j * 18));
             }
         }
 

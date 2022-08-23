@@ -1,20 +1,13 @@
 package xyz.brassgoggledcoders.dailyresources.resource;
 
 import com.google.common.base.Suppliers;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.world.item.ItemStack;
 import org.apache.commons.compress.utils.Lists;
-import org.apache.commons.compress.utils.Sets;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesTriggers;
-import xyz.brassgoggledcoders.dailyresources.menu.Choice;
 import xyz.brassgoggledcoders.dailyresources.trigger.Trigger;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 

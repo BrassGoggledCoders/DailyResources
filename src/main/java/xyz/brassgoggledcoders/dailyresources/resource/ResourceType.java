@@ -4,7 +4,6 @@ import com.mojang.serialization.Codec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorage;
-import xyz.brassgoggledcoders.dailyresources.menu.Choice;
 
 import java.util.Optional;
 import java.util.function.Function;

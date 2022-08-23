@@ -2,11 +2,9 @@ package xyz.brassgoggledcoders.dailyresources.resource;
 
 import com.google.common.base.Suppliers;
 import com.mojang.serialization.Codec;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import org.jetbrains.annotations.NotNull;
 import xyz.brassgoggledcoders.dailyresources.codec.OptionalTypeKeyDispatchCodec;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesResources;
-import xyz.brassgoggledcoders.dailyresources.menu.Choice;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -29,9 +27,7 @@ public interface Resource<T> {
 
     boolean contains(T object);
 
-    void addToStorage(@NotNull T choice, @NotNull ICapabilityProvider capabilityProvider);
-
-
     <U> Optional<Resource<U>> cast(ResourceType<U> resourceType);
 
+    Codec<Choice<T>> getChoiceCodec();
 }

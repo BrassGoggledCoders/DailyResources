@@ -5,14 +5,12 @@ import com.mojang.datafixers.util.Pair;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.DataSlot;
-import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesResources;
+import xyz.brassgoggledcoders.dailyresources.resource.Choice;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceGroup;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceType;
 
@@ -25,7 +23,7 @@ import java.util.function.Predicate;
 
 public class ResourceSelectorMenu<T> extends AbstractContainerMenu {
     private final DataSlot selectedGroupIndex = DataSlot.standalone();
-    private final DataSlot selectedChoiceIndex = DataSlot.standalone();
+    private final ContainerData selectedChoiceIndexes;
 
     private final List<Pair<UUID, ResourceGroup>> groupsToChoose;
     private final List<List<Choice<T>>> choices;
@@ -62,26 +60,30 @@ public class ResourceSelectorMenu<T> extends AbstractContainerMenu {
             this.addSlot(new Slot(inventory, k, 8 + k * 18, 142));
         }
 
-        this.addDataSlot(this.selectedChoiceIndex);
-    }
+        this.selectedChoiceIndexes = new BasicContainerData(this.groupsToChoose.size(), -1);
 
-    /**
-     * Returns the index of the selected recipe.
-     */
-    public int getSelectedChoiceIndex() {
-        return this.selectedChoiceIndex.get();
+        this.addDataSlot(this.selectedGroupIndex);
+        this.addDataSlots(this.selectedChoiceIndexes);
     }
 
     public List<Choice<T>> getChoices() {
         if (this.choices.isEmpty() || this.choices.size() < this.selectedGroupIndex.get()) {
             return Collections.emptyList();
         } else {
-            return this.choices.get(this.selectedChoiceIndex.get());
+            return this.choices.get(this.selectedGroupIndex.get());
         }
     }
 
-    public int getNumItemStacks() {
-        return this.choices.size();
+    public List<Choice<T>> getChoices(int groupIndex) {
+        if (this.choices.isEmpty() || this.choices.size() < groupIndex) {
+            return Collections.emptyList();
+        } else {
+            return this.choices.get(groupIndex);
+        }
+    }
+
+    public int getNumChoices() {
+        return this.getChoices().size();
     }
 
     @Override
@@ -91,37 +93,52 @@ public class ResourceSelectorMenu<T> extends AbstractContainerMenu {
 
     @Override
     public boolean clickMenuButton(@NotNull Player pPlayer, int pId) {
-        if (pId == -1) {
-            if (this.isValidChoiceIndex(this.selectedChoiceIndex.get())) {
-                Pair<UUID, ResourceGroup> selectedGroup = this.getSelectedGroup();
-                Choice<T> selected = this.getSelectedChoice();
-                if (selectedGroup != null && selected != null) {
-                    return this.onConfirmed.apply(
-                            selectedGroup.getFirst(),
-                            selectedGroup.getSecond(),
-                            selected,
-                            pPlayer.getUUID()
-                    );
-                }
+        if (pId >= 1000) {
+            int groupIndex = pId - 1000;
+            if (this.hasValidGroupIndex(groupIndex)) {
+                this.selectedGroupIndex.set(groupIndex);
+                return true;
             } else {
                 return false;
             }
-        } else if (this.isValidChoiceIndex(pId)) {
-            this.selectedChoiceIndex.set(pId);
+        } else if (this.hasValidChoiceIndex(this.selectedGroupIndex.get(), pId)) {
+            if (this.getSelectedChoiceIndex() == pId) {
+                this.selectedChoiceIndexes.set(this.selectedGroupIndex.get(), -1);
+            } else {
+                this.selectedChoiceIndexes.set(this.selectedGroupIndex.get(), pId);
+            }
+            return true;
         }
 
-        return true;
+        return false;
     }
 
-    private boolean isValidChoiceIndex(int index) {
-        return index >= 0 && index < this.getChoices().size();
+    private boolean hasValidGroupIndex(int index) {
+        return index >= 0 && index < this.groupsToChoose.size();
     }
 
-    private Choice<T> getSelectedChoice() {
-        if (this.isValidChoiceIndex(this.selectedChoiceIndex.get())) {
-            return this.getChoices().get(this.selectedChoiceIndex.get());
+    private boolean hasValidChoiceIndex(int groupIndex) {
+        if (this.isValidGroupIndex(groupIndex)) {
+            int index = this.selectedChoiceIndexes.get(groupIndex);
+            return index >= 0 && index < this.getChoices().size();
         } else {
-            return null;
+            return false;
+        }
+    }
+
+    private boolean hasValidChoiceIndex(int groupIndex, int index) {
+        if (this.isValidGroupIndex(groupIndex)) {
+            return index >= 0 && index < this.getChoices().size();
+        } else {
+            return false;
+        }
+    }
+
+    public int getSelectedChoiceIndex() {
+        if (this.hasValidChoiceIndex(this.selectedGroupIndex.get())) {
+            return this.selectedChoiceIndexes.get(this.selectedGroupIndex.get());
+        } else {
+            return -1;
         }
     }
 
@@ -129,18 +146,42 @@ public class ResourceSelectorMenu<T> extends AbstractContainerMenu {
         return index >= 0 && index < this.groupsToChoose.size();
     }
 
-    private Pair<UUID, ResourceGroup> getSelectedGroup() {
-        if (this.isValidGroupIndex(this.selectedGroupIndex.get())) {
-            return this.groupsToChoose.get(this.selectedGroupIndex.get());
+    @Override
+    public void removed(@NotNull Player pPlayer) {
+        super.removed(pPlayer);
+        this.closeHandler.accept(pPlayer);
+        for (int i = 0; i < this.getResourceGroups().size(); i++) {
+            if (this.selectedChoiceIndexes.get(i) >= 0) {
+                Pair<UUID, ResourceGroup> resourceGroupPair = this.getResourceGroups().get(i);
+                Choice<T> choice = this.getChoice(i);
+                if (choice != null) {
+                    this.onConfirmed.apply(
+                            resourceGroupPair.getFirst(),
+                            resourceGroupPair.getSecond(),
+                            choice,
+                            pPlayer.getUUID()
+                    );
+                }
+            }
+        }
+    }
+
+    @Nullable
+    private Choice<T> getChoice(int groupIndex) {
+        if (this.hasValidChoiceIndex(groupIndex)) {
+            return this.getChoices(groupIndex)
+                    .get(this.selectedChoiceIndexes.get(groupIndex));
         } else {
             return null;
         }
     }
 
-    @Override
-    public void removed(@NotNull Player pPlayer) {
-        super.removed(pPlayer);
-        this.closeHandler.accept(pPlayer);
+    public List<Pair<UUID, ResourceGroup>> getResourceGroups() {
+        return this.groupsToChoose;
+    }
+
+    public int getSelectedGroupIndex() {
+        return this.selectedGroupIndex.get();
     }
 
     @NotNull

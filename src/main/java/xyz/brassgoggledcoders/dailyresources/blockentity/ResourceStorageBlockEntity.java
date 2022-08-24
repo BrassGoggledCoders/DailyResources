@@ -38,6 +38,7 @@ import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.brassgoggledcoders.dailyresources.DailyResources;
+import xyz.brassgoggledcoders.dailyresources.capability.ItemHandlerWrapper;
 import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorage;
 import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorageStorage;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesBlocks;
@@ -67,10 +68,12 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
     private Trigger nbtTrigger;
     private LazyOptional<ResourceStorageStorage> storageLazyOptional;
     private LazyOptional<IItemHandler> externalHandler;
+    private LazyOptional<IItemHandler> wrapperHandler;
 
     public ResourceStorageBlockEntity(BlockEntityType<?> pType, BlockPos pWorldPosition, BlockState pBlockState) {
         super(pType, pWorldPosition, pBlockState);
         this.containerOpenersCounter = Suppliers.memoize(() -> new ResourceStorageOpenersCounter(Objects.requireNonNull(this.getUniqueId())));
+        this.wrapperHandler = LazyOptional.of(() -> new ItemHandlerWrapper(this::getExternalHandler));
     }
 
     @Nullable
@@ -97,10 +100,7 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
-            LazyOptional<IItemHandler> externalHandler = this.getExternalHandler();
-            if (this.externalHandler.isPresent()) {
-                return externalHandler.cast();
-            }
+            return this.wrapperHandler.cast();
         }
 
         return super.getCapability(cap, side);
@@ -261,7 +261,7 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
 
     private boolean onConfirmed(UUID id, ResourceGroup resourceGroup, Choice<ItemStack> choice, UUID owner) {
         Optional<ResourceLocation> resourceGroupId = DailyResources.RESOURCE_GROUP_MANAGER.getId(resourceGroup);
-        if (this.externalHandler != null && this.externalHandler.isPresent()) {
+        if (this.externalHandler != null) {
             this.externalHandler.invalidate();
             this.externalHandler = null;
         }
@@ -298,9 +298,7 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
     @Override
     public void invalidateCaps() {
         super.invalidateCaps();
-        if (this.externalHandler != null && this.externalHandler.isPresent()) {
-            this.externalHandler.invalidate();
-        }
+        this.wrapperHandler.invalidate();
     }
 
     @Override

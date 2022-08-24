@@ -167,7 +167,7 @@ public class ResourceSelectorMenu<T> extends AbstractContainerMenu {
     }
 
     @Nullable
-    private Choice<T> getChoice(int groupIndex) {
+    public Choice<T> getChoice(int groupIndex) {
         if (this.hasValidChoiceIndex(groupIndex)) {
             return this.getChoices(groupIndex)
                     .get(this.selectedChoiceIndexes.get(groupIndex));

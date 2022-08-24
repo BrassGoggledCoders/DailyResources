@@ -3,7 +3,9 @@ package xyz.brassgoggledcoders.dailyresources.resource;
 import com.google.common.base.Suppliers;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.network.chat.Component;
 import org.apache.commons.compress.utils.Lists;
+import xyz.brassgoggledcoders.dailyresources.codec.Codecs;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesTriggers;
 import xyz.brassgoggledcoders.dailyresources.trigger.Trigger;
 
@@ -13,11 +15,13 @@ import java.util.function.Supplier;
 
 public record ResourceGroup(
         List<Resource<?>> resources,
-        Trigger trigger
+        Trigger trigger,
+        Component name
 ) {
     public static final Supplier<Codec<ResourceGroup>> CODEC = Suppliers.memoize(() -> RecordCodecBuilder.create(instance -> instance.group(
             Codec.list(Resource.CODEC.get()).fieldOf("resources").forGetter(ResourceGroup::resources),
-            DailyResourcesTriggers.REGISTRY.get().getCodec().fieldOf("trigger").forGetter(ResourceGroup::trigger)
+            DailyResourcesTriggers.REGISTRY.get().getCodec().fieldOf("trigger").forGetter(ResourceGroup::trigger),
+            Codecs.COMPONENT.fieldOf("name").forGetter(ResourceGroup::name)
     ).apply(instance, ResourceGroup::new)));
 
     public <T> List<Resource<T>> getResourceFor(ResourceType<T> resourceType) {

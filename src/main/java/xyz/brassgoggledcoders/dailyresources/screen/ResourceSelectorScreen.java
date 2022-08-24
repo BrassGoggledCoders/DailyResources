@@ -19,9 +19,7 @@ import xyz.brassgoggledcoders.dailyresources.menu.ResourceSelectorMenu;
 import xyz.brassgoggledcoders.dailyresources.resource.Choice;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceGroup;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceSelectorMenu<T>> {
     private static final ResourceLocation BG_LOCATION = DailyResources.rl("textures/screen/resource_selector.png");
@@ -32,9 +30,14 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
 
     private int startIndex;
 
+    private final int[] currentIcons;
+    private int change = 40;
+
     public ResourceSelectorScreen(ResourceSelectorMenu<T> pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
         --this.titleLabelY;
+        this.currentIcons = new int[pMenu.getResourceGroups().size()];
+        Arrays.fill(currentIcons, 0);
     }
 
     @Override
@@ -42,6 +45,21 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
         super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         this.renderTooltip(pPoseStack, pMouseX, pMouseY);
     }
+
+    @Override
+    protected void containerTick() {
+        if (this.change-- <= 0) {
+            for (int i = 0; i < currentIcons.length; i++) {
+                int currentIcon = currentIcons[i] + 1;
+                if (currentIcon >= this.getMenu().getChoices(i).size()) {
+                    currentIcon = 0;
+                }
+                currentIcons[i] = currentIcon;
+            }
+            this.change = 40;
+        }
+    }
+
 
     @Override
     protected void renderBg(@NotNull PoseStack pPoseStack, float pPartialTick, int pX, int pY) {
@@ -87,7 +105,13 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
             if (pX >= j1 && pX < j1 + 16 && pY >= k1 && pY < k1 + 18) {
                 List<Choice<T>> choices = this.menu.getChoices(groupIndex);
                 if (!choices.isEmpty()) {
-                    this.renderTooltip(pPoseStack, choices.get(0).asItemStack(), pX, pY);
+                    this.renderTooltip(
+                            pPoseStack,
+                            Collections.singletonList(resourceGroups.get(groupIndex).getSecond().name()),
+                            Optional.empty(),
+                            pX,
+                            pY
+                    );
                 }
             }
         }
@@ -143,13 +167,17 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
         for (int groupIndex = 0; groupIndex < groupLength; groupIndex++) {
             int leftPos = groupLeftPos + groupIndex % 2 * 16;
             int topPos = pTop + groupIndex / 2 * 18 + 2;
+            Choice<T> groupChoice = this.menu.getChoice(groupIndex);
             List<Choice<T>> choices = this.menu.getChoices(groupIndex);
-            if (!choices.isEmpty()) {
-                this.itemRenderer.renderAndDecorateItem(choices.get(0).asItemStack(), leftPos, topPos);
-                this.itemRenderer.renderGuiItemDecorations(this.font, choices.get(0).asItemStack(), leftPos, topPos, null);
+            int currentIcon = currentIcons[groupIndex];
+            if (groupChoice != null) {
+                this.itemRenderer.renderAndDecorateItem(groupChoice.asItemStack(), leftPos, topPos);
+                this.itemRenderer.renderGuiItemDecorations(this.font, groupChoice.asItemStack(), leftPos, topPos, null);
+            } else if (choices.size() > currentIcon) {
+                this.itemRenderer.renderAndDecorateItem(choices.get(currentIcon).asItemStack(), leftPos, topPos);
+                this.itemRenderer.renderGuiItemDecorations(this.font, choices.get(currentIcon).asItemStack(), leftPos, topPos, null);
             }
         }
-
     }
 
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {

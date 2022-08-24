@@ -15,6 +15,7 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -33,7 +34,6 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,6 +66,7 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
     private Trigger trigger;
     private Trigger nbtTrigger;
     private LazyOptional<ResourceStorageStorage> storageLazyOptional;
+    private LazyOptional<IItemHandler> externalHandler;
 
     public ResourceStorageBlockEntity(BlockEntityType<?> pType, BlockPos pWorldPosition, BlockState pBlockState) {
         super(pType, pWorldPosition, pBlockState);
@@ -96,7 +97,10 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
-            return LazyOptional.empty();
+            LazyOptional<IItemHandler> externalHandler = this.getExternalHandler();
+            if (this.externalHandler.isPresent()) {
+                return externalHandler.cast();
+            }
         }
 
         return super.getCapability(cap, side);
@@ -155,14 +159,22 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
 
     private void refreshStorageStorage(LazyOptional<ResourceStorageStorage> lazyOptional) {
         this.storageLazyOptional = null;
+        if (this.externalHandler != null && this.externalHandler.isPresent()) {
+            this.externalHandler.invalidate();
+            this.externalHandler = null;
+        }
     }
 
-    private IItemHandler getHandler() {
+    private Optional<IItemHandler> getHandlerOpt() {
         return this.getResourceStorageStorage()
                 .resolve()
                 .flatMap(storage -> storage.getCapability(this.getUniqueId(), CapabilityItemHandler.ITEM_HANDLER_CAPABILITY)
                         .resolve()
-                )
+                );
+    }
+
+    private IItemHandler getHandler() {
+        return this.getHandlerOpt()
                 .orElseThrow();
     }
 
@@ -196,6 +208,19 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
         }
     }
 
+    private LazyOptional<IItemHandler> getExternalHandler() {
+        if (this.externalHandler == null) {
+            if (this.resourceGroups == null || this.resourceGroups.isEmpty()) {
+                this.externalHandler = LazyOptional.empty();
+            } else {
+                this.externalHandler = this.getHandlerOpt()
+                        .map(handler -> LazyOptional.of(() -> handler))
+                        .orElse(LazyOptional.empty());
+            }
+        }
+        return this.externalHandler;
+    }
+
     private List<Pair<UUID, ResourceGroup>> getGroupsForChoices() {
         Predicate<UUID> predicate = this.getResourceStorageStorage()
                 .resolve()
@@ -213,8 +238,33 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
                 .toList();
     }
 
+    public void remove() {
+        this.getResourceStorageStorage()
+                .ifPresent(resourceStorageStorage -> {
+                    ResourceStorage resourceStorage = resourceStorageStorage.deleteResourceStorage(this.getUniqueId());
+                    if (resourceStorage != null) {
+                        resourceStorage.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY)
+                                .ifPresent(inventory -> {
+                                    BlockPos pos = this.getBlockPos();
+                                    dropContents(this.getLevel(), pos.getX(), pos.getY(), pos.getZ(), inventory);
+                                });
+                    }
+                });
+    }
+
+    private static void dropContents(Level pLevel, double pX, double pY, double pZ, IItemHandler pInventory) {
+        for (int i = 0; i < pInventory.getSlots(); ++i) {
+            Containers.dropItemStack(pLevel, pX, pY, pZ, pInventory.getStackInSlot(i));
+        }
+
+    }
+
     private boolean onConfirmed(UUID id, ResourceGroup resourceGroup, Choice<ItemStack> choice, UUID owner) {
         Optional<ResourceLocation> resourceGroupId = DailyResources.RESOURCE_GROUP_MANAGER.getId(resourceGroup);
+        if (this.externalHandler != null && this.externalHandler.isPresent()) {
+            this.externalHandler.invalidate();
+            this.externalHandler = null;
+        }
 
         return resourceGroupId.isPresent() && this.getResourceStorageStorage()
                 .map(resourceStorageStorage -> {
@@ -248,6 +298,9 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
     @Override
     public void invalidateCaps() {
         super.invalidateCaps();
+        if (this.externalHandler != null && this.externalHandler.isPresent()) {
+            this.externalHandler.invalidate();
+        }
     }
 
     @Override

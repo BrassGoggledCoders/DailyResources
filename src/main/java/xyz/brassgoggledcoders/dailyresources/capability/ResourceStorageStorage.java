@@ -139,6 +139,10 @@ public class ResourceStorageStorage {
         this.resourceStorages.values().forEach(ResourceStorage::invalidateCapabilities);
     }
 
+    public ResourceStorage deleteResourceStorage(UUID uniqueId) {
+        return this.resourceStorages.remove(uniqueId);
+    }
+
     public static ResourceStorageStorage read(
             Map<UUID, ResourceStorage> storages,
             Map<UUID, List<ResourceStorageSelection<?>>> selections

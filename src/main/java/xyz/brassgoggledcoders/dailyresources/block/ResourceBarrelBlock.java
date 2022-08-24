@@ -64,13 +64,11 @@ public class ResourceBarrelBlock extends Block implements EntityBlock {
     @ParametersAreNonnullByDefault
     public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pIsMoving) {
         if (!pState.is(pNewState.getBlock())) {
-            /* TODO: Make drops?
-            pLevel.getBlockEntity(pPos, NetherBarrelBlocks.NETHER_BARREL_ENTITY.get())
-                    .ifPresent(itemHandler -> {
-                        Containers.dropContents(pLevel, pPos, itemHandler.getStacks());
-                        pLevel.updateNeighbourForOutputSignal(pPos, this);
-                    });
-            */
+            if (pLevel.getBlockEntity(pPos) instanceof ResourceStorageBlockEntity resourceStorageBlockEntity) {
+                resourceStorageBlockEntity.remove();
+                pLevel.updateNeighbourForOutputSignal(pPos, this);
+            }
+
             super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving);
         }
     }

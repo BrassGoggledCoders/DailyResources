@@ -252,10 +252,10 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
     }
 
     private boolean isScrollBarActive() {
-        return this.menu.getNumChoices() > 12;
+        return this.menu.getNumChoices() > 15;
     }
 
     private int getOffscreenRows() {
-        return (this.menu.getNumChoices() + 4 - 1) / 4 - 3;
+        return (this.menu.getNumChoices() + 5 - 1) / 5 - 3;
     }
 }

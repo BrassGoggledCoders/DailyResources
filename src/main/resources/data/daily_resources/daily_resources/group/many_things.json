@@ -8,7 +8,11 @@
     {
       "item": "minecraft:chest",
       "count": 8
+    },
+    {
+      "item": "#minecraft:flowers",
+      "count": 32
     }
   ],
-  "name": "Pretty Planks"
+  "name": "Many Things"
 }

@@ -19,7 +19,7 @@ import net.minecraftforge.client.model.data.ModelDataMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.brassgoggledcoders.dailyresources.block.ResourceBarrelBlock;
-import xyz.brassgoggledcoders.dailyresources.blockentity.ResourceStorageBlockEntity;
+import xyz.brassgoggledcoders.dailyresources.blockentity.ItemResourceStorageBlockEntity;
 import xyz.brassgoggledcoders.dailyresources.trigger.Trigger;
 
 import java.util.ArrayList;
@@ -49,7 +49,7 @@ public class ResourceBarrelBakedModel implements BakedModel {
     @NotNull
     public List<BakedQuad> getQuads(@Nullable BlockState pState, @Nullable Direction pSide, @NotNull Random pRand, @NotNull IModelData modelData) {
         List<BakedQuad> bakedQuads = new ArrayList<>(model.getQuads(pState, pSide, pRand, EmptyModelData.INSTANCE));
-        Trigger trigger = modelData.getData(ResourceStorageBlockEntity.TRIGGER_PROPERTY);
+        Trigger trigger = modelData.getData(ItemResourceStorageBlockEntity.TRIGGER_PROPERTY);
         if (trigger != null) {
             Direction facing = pState != null ? pState.getValue(ResourceBarrelBlock.FACING) : Direction.UP;
             bakedQuads.add(BlockModel.makeBakedQuad(
@@ -116,9 +116,9 @@ public class ResourceBarrelBakedModel implements BakedModel {
     @NotNull
     @Override
     public IModelData getModelData(@NotNull BlockAndTintGetter level, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull IModelData modelData) {
-        if (level.getBlockEntity(pos) instanceof ResourceStorageBlockEntity resourceStorageBlockEntity) {
+        if (level.getBlockEntity(pos) instanceof ItemResourceStorageBlockEntity resourceStorageBlockEntity) {
             return new ModelDataMap.Builder()
-                    .withInitial(ResourceStorageBlockEntity.TRIGGER_PROPERTY, resourceStorageBlockEntity.getTrigger())
+                    .withInitial(ItemResourceStorageBlockEntity.TRIGGER_PROPERTY, resourceStorageBlockEntity.getTrigger())
                     .build();
         } else {
             return EmptyModelData.INSTANCE;

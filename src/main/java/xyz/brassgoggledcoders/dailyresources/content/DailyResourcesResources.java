@@ -1,27 +1,31 @@
 package xyz.brassgoggledcoders.dailyresources.content;
 
 import com.tterrag.registrate.util.entry.RegistryEntry;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryBuilder;
 import xyz.brassgoggledcoders.dailyresources.DailyResources;
-import xyz.brassgoggledcoders.dailyresources.resource.item.ItemStackResource;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceType;
+import xyz.brassgoggledcoders.dailyresources.resource.item.ItemStackResource;
 import xyz.brassgoggledcoders.dailyresources.resource.item.ItemStackResourceStorage;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 @SuppressWarnings("UnstableApiUsage")
 public class DailyResourcesResources {
-    public static final Supplier<IForgeRegistry<ResourceType>> REGISTRY = DailyResources.getRegistrate()
-            .makeRegistry("resource", ResourceType.class, () -> new RegistryBuilder<ResourceType>()
+    public static final Supplier<IForgeRegistry<ResourceType<?>>> REGISTRY = DailyResources.getRegistrate()
+            .makeRegistry("resource", ResourceType.class, () -> new RegistryBuilder<ResourceType<?>>()
                     .setDefaultKey(DailyResources.rl("itemstack"))
             );
 
-    public static final RegistryEntry<ResourceType> ITEMSTACK = DailyResources.getRegistrate()
+    public static final RegistryEntry<ResourceType<ItemStack>> ITEMSTACK = DailyResources.getRegistrate()
             .object("itemstack")
-            .simple(ResourceType.class, () -> new ResourceType(
+            .simple(ResourceType.class, () -> new ResourceType<>(
+                    ItemStack.class,
                     ItemStackResource.CODEC,
-                    ItemStackResourceStorage.CODEC.get()
+                    ItemStackResourceStorage.CODEC.get(),
+                    Function.identity()
             ));
 
     public static void setup() {

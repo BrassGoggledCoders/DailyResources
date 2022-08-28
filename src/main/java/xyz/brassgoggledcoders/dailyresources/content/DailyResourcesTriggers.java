@@ -19,7 +19,7 @@ public class DailyResourcesTriggers {
             .simple(Trigger.class, () -> new Trigger(new ResourceLocation("item/compass_18")));
     public static final RegistryEntry<Trigger> DAWN = DailyResources.getRegistrate()
             .object("dawn")
-            .simple(Trigger.class, () -> new Trigger(new ResourceLocation("item/clock_18")));
+            .simple(Trigger.class, () -> new Trigger(new ResourceLocation("item/clock_48")));
 
     public static final RegistryEntry<Trigger> NOON = DailyResources.getRegistrate()
             .object("noon")
@@ -27,7 +27,7 @@ public class DailyResourcesTriggers {
 
     public static final RegistryEntry<Trigger> DUSK = DailyResources.getRegistrate()
             .object("dusk")
-            .simple(Trigger.class, () -> new Trigger(new ResourceLocation("item/clock_47")));
+            .simple(Trigger.class, () -> new Trigger(new ResourceLocation("item/clock_18")));
 
     public static final RegistryEntry<Trigger> MIDNIGHT= DailyResources.getRegistrate()
             .object("midnight")
@@ -36,6 +36,10 @@ public class DailyResourcesTriggers {
     public static final RegistryEntry<Trigger> DREAMER = DailyResources.getRegistrate()
             .object("dreamer")
             .simple(Trigger.class, () -> new Trigger(new ResourceLocation("block/red_wool")));
+
+    public static final RegistryEntry<Trigger> ANY = DailyResources.getRegistrate()
+            .object("any")
+            .simple(Trigger.class, () -> new Trigger(new ResourceLocation("item/barrier")));
 
     public static final RegistryEntry<Trigger> NONE = DailyResources.getRegistrate()
             .object("none")

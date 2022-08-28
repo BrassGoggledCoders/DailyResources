@@ -2,17 +2,16 @@ package xyz.brassgoggledcoders.dailyresources.resource;
 
 import com.google.common.base.Suppliers;
 import com.mojang.serialization.Codec;
-import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import org.jetbrains.annotations.NotNull;
 import xyz.brassgoggledcoders.dailyresources.codec.OptionalTypeKeyDispatchCodec;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesResources;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.function.Supplier;
 
-public interface Resource {
-    Supplier<Codec<Resource>> CODEC = Suppliers.memoize(() -> new OptionalTypeKeyDispatchCodec<ResourceType, Resource>(
+public interface Resource<T> {
+    Supplier<Codec<Resource<?>>> CODEC = Suppliers.memoize(() -> new OptionalTypeKeyDispatchCodec<ResourceType<?>, Resource<?>>(
             DailyResourcesResources.ITEMSTACK.getId().toString(),
             "type",
             DailyResourcesResources.REGISTRY.get().getCodec(),
@@ -21,14 +20,14 @@ public interface Resource {
     ).codec());
 
     @NotNull
-    ResourceType getResourceType();
+    ResourceType<T> getResourceType();
 
     @NotNull
-    Collection<ItemStack> asChoices();
+    Collection<Choice<T>> asChoices();
 
-    boolean contains(ItemStack itemStack);
+    boolean contains(T object);
 
-    void addToStorage(@NotNull ItemStack choice, @NotNull ICapabilityProvider capabilityProvider);
+    <U> Optional<Resource<U>> cast(ResourceType<U> resourceType);
 
-
+    Codec<Choice<T>> getChoiceCodec();
 }

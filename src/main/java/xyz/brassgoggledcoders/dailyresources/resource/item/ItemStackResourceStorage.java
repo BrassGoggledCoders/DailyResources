@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorage;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesResources;
-import xyz.brassgoggledcoders.dailyresources.resource.ResourceStorageInfo;
+import xyz.brassgoggledcoders.dailyresources.resource.ResourceStorageSelection;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceType;
 
 import java.util.function.Supplier;
@@ -22,9 +22,6 @@ import java.util.function.Supplier;
 public class ItemStackResourceStorage extends ResourceStorage {
     public static final Supplier<Codec<ItemStackResourceStorage>> CODEC = Suppliers.memoize(() ->
             RecordCodecBuilder.create(instance -> instance.group(
-                    ResourceStorageInfo.CODEC.get()
-                            .fieldOf("info")
-                            .forGetter(ItemStackResourceStorage::getInfo),
                     ItemStackResourceItemHandler.CODEC.fieldOf("itemHandler")
                             .forGetter(ItemStackResourceStorage::getItemHandler)
             ).apply(instance, ItemStackResourceStorage::new))
@@ -33,8 +30,8 @@ public class ItemStackResourceStorage extends ResourceStorage {
     private final ItemStackResourceItemHandler itemHandler;
     private final LazyOptional<IItemHandler> lazyOptional = LazyOptional.of(this::getItemHandler);
 
-    public ItemStackResourceStorage(ResourceStorageInfo info, ItemStackResourceItemHandler itemHandler) {
-        super(info);
+    public ItemStackResourceStorage(ItemStackResourceItemHandler itemHandler) {
+        super();
         this.itemHandler = itemHandler;
     }
 
@@ -47,6 +44,12 @@ public class ItemStackResourceStorage extends ResourceStorage {
         lazyOptional.invalidate();
     }
 
+    @Override
+    public void trigger(ResourceStorageSelection<?> storageSelection) {
+        storageSelection.getChoice(DailyResourcesResources.ITEMSTACK.get())
+                .ifPresent(itemStack -> ItemHandlerHelper.insertItemStacked(this.getItemHandler(), itemStack.copy(), false));
+    }
+
     @NotNull
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
@@ -54,13 +57,7 @@ public class ItemStackResourceStorage extends ResourceStorage {
     }
 
     @Override
-    public ResourceType getResourceType() {
+    public ResourceType<ItemStack> getResourceType() {
         return DailyResourcesResources.ITEMSTACK.get();
-    }
-
-    @Override
-    public void trigger() {
-        ItemStack itemStack = this.getInfo().choice().copy();
-        ItemHandlerHelper.insertItemStacked(this.getItemHandler(), itemStack, false);
     }
 }

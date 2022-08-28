@@ -4,13 +4,13 @@ import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.entry.MenuEntry;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.material.Material;
 import net.minecraftforge.client.model.generators.ModelFile;
 import xyz.brassgoggledcoders.dailyresources.DailyResources;
 import xyz.brassgoggledcoders.dailyresources.block.ResourceBarrelBlock;
-import xyz.brassgoggledcoders.dailyresources.blockentity.ResourceStorageBlockEntity;
+import xyz.brassgoggledcoders.dailyresources.blockentity.ItemResourceStorageBlockEntity;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceSelectorMenu;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceStorageMenu;
 import xyz.brassgoggledcoders.dailyresources.screen.ResourceSelectorScreen;
@@ -51,10 +51,10 @@ public class DailyResourcesBlocks {
             .build()
             .register();
 
-    public static final BlockEntityEntry<ResourceStorageBlockEntity> STORAGE_BLOCK_ENTITY =
+    public static final BlockEntityEntry<ItemResourceStorageBlockEntity> STORAGE_BLOCK_ENTITY =
             DailyResources.getRegistrate()
                     .object("storage")
-                    .blockEntity(ResourceStorageBlockEntity::new)
+                    .blockEntity(ItemResourceStorageBlockEntity::new)
                     .validBlock(BARREL)
                     .register();
 
@@ -63,9 +63,12 @@ public class DailyResourcesBlocks {
             .menu(ResourceStorageMenu::create, () -> ResourceStorageScreen::new)
             .register();
 
-    public static final MenuEntry<ResourceSelectorMenu> SELECTOR_MENU = DailyResources.getRegistrate()
+    public static final MenuEntry<ResourceSelectorMenu<ItemStack>> ITEM_SELECTOR_MENU = DailyResources.getRegistrate()
             .object("selector")
-            .menu(ResourceSelectorMenu::create, () -> ResourceSelectorScreen::new)
+            .<ResourceSelectorMenu<ItemStack>, ResourceSelectorScreen<ItemStack>>menu(
+                    ResourceSelectorMenu::createItem,
+                    () -> ResourceSelectorScreen::new
+            )
             .register();
 
     public static void setup() {

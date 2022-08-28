@@ -1,5 +1,5 @@
 {
-  "trigger": "daily_resources:dawn",
+  "trigger": "daily_resources:dusk",
   "resources": [
     {
       "item": "#minecraft:planks",
@@ -8,7 +8,11 @@
     {
       "item": "minecraft:chest",
       "count": 8
+    },
+    {
+      "item": "#minecraft:flowers",
+      "count": 32
     }
   ],
-  "name": "Pretty Planks"
+  "name": "Many Things"
 }

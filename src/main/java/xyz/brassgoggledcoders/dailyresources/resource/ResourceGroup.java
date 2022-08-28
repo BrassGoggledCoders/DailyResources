@@ -1,48 +1,43 @@
 package xyz.brassgoggledcoders.dailyresources.resource;
 
 import com.google.common.base.Suppliers;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.chat.Component;
 import org.apache.commons.compress.utils.Lists;
-import org.apache.commons.compress.utils.Sets;
+import xyz.brassgoggledcoders.dailyresources.codec.Codecs;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesTriggers;
 import xyz.brassgoggledcoders.dailyresources.trigger.Trigger;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
 public record ResourceGroup(
-        List<Resource> resources,
-        Trigger trigger
+        List<Resource<?>> resources,
+        Trigger trigger,
+        Component name
 ) {
     public static final Supplier<Codec<ResourceGroup>> CODEC = Suppliers.memoize(() -> RecordCodecBuilder.create(instance -> instance.group(
             Codec.list(Resource.CODEC.get()).fieldOf("resources").forGetter(ResourceGroup::resources),
-            DailyResourcesTriggers.REGISTRY.get().getCodec().fieldOf("trigger").forGetter(ResourceGroup::trigger)
+            DailyResourcesTriggers.REGISTRY.get().getCodec().fieldOf("trigger").forGetter(ResourceGroup::trigger),
+            Codecs.COMPONENT.fieldOf("name").forGetter(ResourceGroup::name)
     ).apply(instance, ResourceGroup::new)));
 
-    public List<Resource> getResourceFor(ResourceType resourceType) {
-        List<Resource> matchingResource = Lists.newArrayList();
-        for (Resource resource : resources) {
-            if (resource.getResourceType() == resourceType) {
-                matchingResource.add(resource);
-            }
+    public <T> List<Resource<T>> getResourceFor(ResourceType<T> resourceType) {
+        List<Resource<T>> matchingResource = Lists.newArrayList();
+        for (Resource<?> resource : resources) {
+            resource.cast(resourceType)
+                    .ifPresent(matchingResource::add);
         }
         return matchingResource;
     }
 
-    public Multimap<Resource, ItemStack> getChoicesFor(ResourceType resourceType) {
-        Multimap<Resource, ItemStack> choices = Multimaps.newSetMultimap(Maps.newHashMap(), Sets::newHashSet);
-        for (Resource resource : this.getResourceFor(resourceType)) {
-            choices.putAll(resource, resource.asChoices());
+    public <T> List<Choice<T>> getChoicesFor(ResourceType<T> resourceType) {
+        List<Choice<T>> choices = new ArrayList<>();
+        for (Resource<T> resource : this.getResourceFor(resourceType)) {
+            choices.addAll(resource.asChoices());
         }
         return choices;
-    }
-
-    public boolean contains(Resource resource) {
-        return resources().contains(resource);
     }
 }

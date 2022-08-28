@@ -1,40 +1,48 @@
 package xyz.brassgoggledcoders.dailyresources.menu;
 
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import xyz.brassgoggledcoders.dailyresources.codec.Codecs;
+import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesBlocks;
+import xyz.brassgoggledcoders.dailyresources.menu.slot.NoPlaceSlot;
+import xyz.brassgoggledcoders.dailyresources.screen.ResourceScreenType;
+import xyz.brassgoggledcoders.dailyresources.screen.Tab;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 public class ResourceStorageMenu extends AbstractContainerMenu {
     private final UUID uniqueId;
-    private final Predicate<Player> stillValid;
     private final Consumer<Player> closeHandler;
-
     private final IItemHandler itemHandler;
+    private final List<Tab<ResourceScreenType>> tabs;
+    private final ContainerLevelAccess levelAccess;
 
     public ResourceStorageMenu(@Nullable MenuType<?> pMenuType, int pContainerId, Inventory inventory, IItemHandler storageInventory, UUID uniqueId,
-                               Predicate<Player> stillValid, Consumer<Player> closeHandler) {
+                               ContainerLevelAccess levelAccess, Consumer<Player> closeHandler, List<Tab<ResourceScreenType>> tabs) {
         super(pMenuType, pContainerId);
         this.uniqueId = uniqueId;
         this.itemHandler = storageInventory;
-        this.stillValid = stillValid;
+        this.levelAccess = levelAccess;
         this.closeHandler = closeHandler;
+        this.tabs = tabs;
         int containerRows = storageInventory.getSlots() / 9;
         int i = (containerRows - 4) * 18;
 
         for (int j = 0; j < containerRows; ++j) {
             for (int k = 0; k < 9; ++k) {
-                this.addSlot(new SlotItemHandler(storageInventory, k + j * 9, 8 + k * 18, 18 + j * 18));
+                this.addSlot(new NoPlaceSlot(storageInventory, k + j * 9, 8 + k * 18, 18 + j * 18));
             }
         }
 
@@ -55,7 +63,7 @@ public class ResourceStorageMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(@NotNull Player pPlayer) {
-        return this.stillValid.test(pPlayer);
+        return stillValid(levelAccess, pPlayer, DailyResourcesBlocks.BARREL.get());
     }
 
     @Override
@@ -68,18 +76,40 @@ public class ResourceStorageMenu extends AbstractContainerMenu {
         return uniqueId;
     }
 
+    public List<Tab<ResourceScreenType>> getTabs() {
+        return this.tabs;
+    }
+
+    @Override
+    public boolean clickMenuButton(@NotNull Player pPlayer, int pId) {
+        if (pId == 0 && !this.getTabs().isEmpty()) {
+            this.levelAccess.execute((level, blockPos) -> DailyResourcesBlocks.STORAGE_BLOCK_ENTITY.get(level, blockPos)
+                    .ifPresent(storage -> storage.openMenu(pPlayer, ResourceScreenType.ITEM_SELECTOR))
+            );
+            return true;
+        }
+
+        return false;
+    }
+
     @NotNull
-    public static ResourceStorageMenu create(MenuType<ResourceStorageMenu> menuType, int id, Inventory inventory) {
+    public static ResourceStorageMenu create(MenuType<ResourceStorageMenu> menuType, int id, Inventory inventory,
+                                             @Nullable FriendlyByteBuf friendlyByteBuf) {
         return new ResourceStorageMenu(
                 menuType,
                 id,
                 inventory,
                 new ItemStackHandler(27),
                 UUID.randomUUID(),
-                player -> true,
+                ContainerLevelAccess.NULL,
                 player -> {
 
-                }
+                },
+                friendlyByteBuf != null ? friendlyByteBuf.readList(listBuf -> new Tab<>(
+                        listBuf.readItem(),
+                        listBuf.readList(subList -> subList.readWithCodec(Codecs.COMPONENT)),
+                        listBuf.readEnum(ResourceScreenType.class)
+                )) : Collections.emptyList()
         );
     }
 }

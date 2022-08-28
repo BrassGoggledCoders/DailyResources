@@ -11,4 +11,6 @@ public class Codecs {
             UUID::fromString,
             UUID::toString
     );
+
+    public static final ComponentCodec COMPONENT = new ComponentCodec();
 }

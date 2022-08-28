@@ -1,3 +1,5 @@
 {
-  "block.daily_resources.barrel": "Barrel"
+  "block.daily_resources.barrel": "Barrel",
+  "text.daily_resources.selection": "Resource Selection",
+  "text.daily_resources.storage": "Resource Storage"
 }

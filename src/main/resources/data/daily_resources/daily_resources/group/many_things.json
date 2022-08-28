@@ -1,0 +1,18 @@
+{
+  "trigger": "daily_resources:dawn",
+  "resources": [
+    {
+      "item": "#minecraft:planks",
+      "count": 64
+    },
+    {
+      "item": "minecraft:chest",
+      "count": 8
+    },
+    {
+      "item": "#minecraft:flowers",
+      "count": 32
+    }
+  ],
+  "name": "Many Things"
+}

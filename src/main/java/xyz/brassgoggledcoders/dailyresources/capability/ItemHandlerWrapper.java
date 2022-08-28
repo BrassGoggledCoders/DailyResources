@@ -10,16 +10,18 @@ import java.util.function.Supplier;
 
 public class ItemHandlerWrapper implements IItemHandlerModifiable {
     private final Supplier<LazyOptional<IItemHandler>> wrappedReceiver;
+    private final int defaultSlots;
 
-    public ItemHandlerWrapper(Supplier<LazyOptional<IItemHandler>> wrappedReceiver) {
+    public ItemHandlerWrapper(Supplier<LazyOptional<IItemHandler>> wrappedReceiver, int defaultSlots) {
         this.wrappedReceiver = wrappedReceiver;
+        this.defaultSlots = defaultSlots;
     }
 
     @Override
     public int getSlots() {
         return wrappedReceiver.get()
                 .map(IItemHandler::getSlots)
-                .orElse(0);
+                .orElse(this.defaultSlots);
     }
 
     @NotNull

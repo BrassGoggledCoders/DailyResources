@@ -9,17 +9,20 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import xyz.brassgoggledcoders.dailyresources.codec.Codecs;
+import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesBlocks;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesResources;
 import xyz.brassgoggledcoders.dailyresources.resource.Choice;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceGroup;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceType;
+import xyz.brassgoggledcoders.dailyresources.screen.ResourceScreenType;
+import xyz.brassgoggledcoders.dailyresources.screen.TabRendering.Tab;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 public class ResourceSelectorMenu<T> extends AbstractContainerMenu {
     private final DataSlot selectedGroupIndex = DataSlot.standalone();
@@ -28,16 +31,19 @@ public class ResourceSelectorMenu<T> extends AbstractContainerMenu {
     private final List<Pair<UUID, ResourceGroup>> groupsToChoose;
     private final List<List<Choice<T>>> choices;
 
-    private final Predicate<Player> stillValid;
+    private final ContainerLevelAccess levelAccess;
     private final Consumer<Player> closeHandler;
     private final Function4<UUID, ResourceGroup, Choice<T>, UUID, Boolean> onConfirmed;
+    private final List<Tab<ResourceScreenType>> tabs;
 
-    public ResourceSelectorMenu(MenuType<?> menuType, int menuId, Inventory inventory, Predicate<Player> stillValid,
+    public ResourceSelectorMenu(MenuType<?> menuType, int menuId, Inventory inventory, ContainerLevelAccess levelAccess,
                                 Consumer<Player> closeHandler, Function4<UUID, ResourceGroup, Choice<T>, UUID, Boolean> onConfirmed,
-                                List<Pair<UUID, ResourceGroup>> groupsToChoose, ResourceType<T> resourceType) {
+                                List<Pair<UUID, ResourceGroup>> groupsToChoose, ResourceType<T> resourceType,
+                                List<Tab<ResourceScreenType>> tabs) {
         super(menuType, menuId);
 
-        this.stillValid = stillValid;
+        this.tabs = tabs;
+        this.levelAccess = levelAccess;
         this.closeHandler = closeHandler;
         this.onConfirmed = onConfirmed;
         this.groupsToChoose = groupsToChoose;
@@ -88,12 +94,17 @@ public class ResourceSelectorMenu<T> extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(@NotNull Player pPlayer) {
-        return this.stillValid.test(pPlayer);
+        return stillValid(levelAccess, pPlayer, DailyResourcesBlocks.BARREL.get());
     }
 
     @Override
     public boolean clickMenuButton(@NotNull Player pPlayer, int pId) {
-        if (pId >= 1000) {
+        if (pId == 2000) {
+            this.levelAccess.execute((level, blockPos) -> DailyResourcesBlocks.STORAGE_BLOCK_ENTITY.get(level, blockPos)
+                    .ifPresent(storage -> storage.openMenu(pPlayer, ResourceScreenType.ITEM_STORAGE))
+            );
+            return true;
+        } else if (pId >= 1000 && pId < 2000) {
             int groupIndex = pId - 1000;
             if (this.hasValidGroupIndex(groupIndex)) {
                 this.selectedGroupIndex.set(groupIndex);
@@ -184,6 +195,10 @@ public class ResourceSelectorMenu<T> extends AbstractContainerMenu {
         return this.selectedGroupIndex.get();
     }
 
+    public List<Tab<ResourceScreenType>> getTabs() {
+        return this.tabs;
+    }
+
     @NotNull
     public static <T> ResourceSelectorMenu<T> create(MenuType<ResourceSelectorMenu<T>> menuType, int id, Inventory inventory,
                                                      @Nullable FriendlyByteBuf friendlyByteBuf, ResourceType<T> resourceType) {
@@ -191,7 +206,7 @@ public class ResourceSelectorMenu<T> extends AbstractContainerMenu {
                 menuType,
                 id,
                 inventory,
-                player -> true,
+                ContainerLevelAccess.NULL,
                 player -> {
 
                 },
@@ -200,7 +215,12 @@ public class ResourceSelectorMenu<T> extends AbstractContainerMenu {
                         listBuf.readUUID(),
                         listBuf.readWithCodec(ResourceGroup.CODEC.get())
                 )) : Collections.emptyList(),
-                resourceType
+                resourceType,
+                friendlyByteBuf != null ? friendlyByteBuf.readList(listBuf -> new Tab<>(
+                        listBuf.readItem(),
+                        listBuf.readList(subList -> subList.readWithCodec(Codecs.COMPONENT)),
+                        listBuf.readEnum(ResourceScreenType.class)
+                )) : Collections.emptyList()
         );
     }
 

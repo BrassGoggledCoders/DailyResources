@@ -42,7 +42,9 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
 
     @Override
     public void render(@NotNull PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        TabRendering.renderTabs(this.leftPos, this.topPos, pPoseStack, this.menu.getTabs(), false, ResourceScreenType.ITEM_SELECTOR, this);
         super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        TabRendering.renderTabs(this.leftPos, this.topPos, pPoseStack, this.menu.getTabs(), true, ResourceScreenType.ITEM_SELECTOR, this);
         this.renderTooltip(pPoseStack, pMouseX, pMouseY);
     }
 
@@ -80,8 +82,8 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
     }
 
     @Override
-    protected void renderTooltip(@NotNull PoseStack pPoseStack, int pX, int pY) {
-        super.renderTooltip(pPoseStack, pX, pY);
+    protected void renderTooltip(@NotNull PoseStack pPoseStack, int mouseX, int mouseY) {
+        super.renderTooltip(pPoseStack, mouseX, mouseY);
         int i = this.leftPos + 4;
         int j = this.topPos + 14;
         int k = this.startIndex + 12;
@@ -91,8 +93,8 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
             int i1 = l - this.startIndex;
             int j1 = i + i1 % 5 * 16;
             int k1 = j + i1 / 5 * 18 + 2;
-            if (pX >= j1 && pX < j1 + 16 && pY >= k1 && pY < k1 + 18) {
-                this.renderTooltip(pPoseStack, list.get(l).asItemStack(), pX, pY);
+            if (mouseX >= j1 && mouseX < j1 + 16 && mouseY >= k1 && mouseY < k1 + 18) {
+                this.renderTooltip(pPoseStack, list.get(l).asItemStack(), mouseX, mouseY);
             }
         }
 
@@ -102,19 +104,21 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
         for (int groupIndex = 0; groupIndex < groupLength; groupIndex++) {
             int j1 = groupLeftPos + groupIndex % 2 * 16;
             int k1 = j + groupIndex / 2 * 18 + 2;
-            if (pX >= j1 && pX < j1 + 16 && pY >= k1 && pY < k1 + 18) {
+            if (mouseX >= j1 && mouseX < j1 + 16 && mouseY >= k1 && mouseY < k1 + 18) {
                 List<Choice<T>> choices = this.menu.getChoices(groupIndex);
                 if (!choices.isEmpty()) {
                     this.renderTooltip(
                             pPoseStack,
                             Collections.singletonList(resourceGroups.get(groupIndex).getSecond().name()),
                             Optional.empty(),
-                            pX,
-                            pY
+                            mouseX,
+                            mouseY
                     );
                 }
             }
         }
+
+        TabRendering.renderTooltips(this.topPos, this.leftPos, mouseX, mouseY, this.menu.getTabs(), pPoseStack, this);
     }
 
     private void renderButtons(PoseStack pPoseStack, int pMouseX, int pMouseY, int pX, int pY, int pLastVisibleElementIndex) {
@@ -224,7 +228,21 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
             listener.mouseClicked(pMouseX, pMouseY, pButton);
         }
 
+        if (TabRendering.checkClicked(this.topPos, this.leftPos, pMouseX, pMouseY, this.menu.getTabs(), this::tabClick)) {
+            return true;
+        }
+
         return super.mouseClicked(pMouseX, pMouseY, pButton);
+    }
+
+    public boolean tabClick(ResourceScreenType type) {
+        if (type == ResourceScreenType.ITEM_STORAGE) {
+            if (this.menu.clickMenuButton(Objects.requireNonNull(Minecraft.getInstance().player), 2000)) {
+                Objects.requireNonNull(this.getMinecraft().gameMode).handleInventoryButtonClick((this.menu).containerId, 2000);
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {

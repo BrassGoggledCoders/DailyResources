@@ -16,10 +16,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -41,24 +40,23 @@ import xyz.brassgoggledcoders.dailyresources.DailyResources;
 import xyz.brassgoggledcoders.dailyresources.capability.ItemHandlerWrapper;
 import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorage;
 import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorageStorage;
-import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesBlocks;
-import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesResources;
+import xyz.brassgoggledcoders.dailyresources.codec.Codecs;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesTriggers;
-import xyz.brassgoggledcoders.dailyresources.menu.ResourceSelectorMenu;
-import xyz.brassgoggledcoders.dailyresources.menu.ResourceStorageMenu;
+import xyz.brassgoggledcoders.dailyresources.menu.BasicMenuProvider;
 import xyz.brassgoggledcoders.dailyresources.resource.Choice;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceGroup;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceStorageSelection;
 import xyz.brassgoggledcoders.dailyresources.resource.item.ItemStackResourceItemHandler;
 import xyz.brassgoggledcoders.dailyresources.resource.item.ItemStackResourceStorage;
+import xyz.brassgoggledcoders.dailyresources.screen.ResourceScreenType;
 import xyz.brassgoggledcoders.dailyresources.trigger.Trigger;
+import xyz.brassgoggledcoders.dailyresources.util.CachedValue;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvider {
+public class ItemResourceStorageBlockEntity extends BlockEntity implements Nameable {
     public final static ModelProperty<Trigger> TRIGGER_PROPERTY = new ModelProperty<>();
     private final Supplier<ResourceStorageOpenersCounter> containerOpenersCounter;
     private UUID uniqueId;
@@ -68,12 +66,19 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
     private Trigger nbtTrigger;
     private LazyOptional<ResourceStorageStorage> storageLazyOptional;
     private LazyOptional<IItemHandler> externalHandler;
-    private LazyOptional<IItemHandler> wrapperHandler;
+    private final LazyOptional<IItemHandler> wrapperHandler;
 
-    public ResourceStorageBlockEntity(BlockEntityType<?> pType, BlockPos pWorldPosition, BlockState pBlockState) {
+    private final CachedValue<List<Pair<UUID, ResourceGroup>>> cachedGroups;
+
+    public ItemResourceStorageBlockEntity(BlockEntityType<?> pType, BlockPos pWorldPosition, BlockState pBlockState) {
         super(pType, pWorldPosition, pBlockState);
         this.containerOpenersCounter = Suppliers.memoize(() -> new ResourceStorageOpenersCounter(Objects.requireNonNull(this.getUniqueId())));
-        this.wrapperHandler = LazyOptional.of(() -> new ItemHandlerWrapper(this::getExternalHandler));
+        this.wrapperHandler = LazyOptional.of(() -> new ItemHandlerWrapper(this::getExternalHandler, 27));
+        this.cachedGroups = new CachedValue<>(
+                1,
+                this::getGroupsForChoices,
+                () -> this.getLevel() == null ? 0 : this.getLevel().getGameTime()
+        );
     }
 
     @Nullable
@@ -128,14 +133,6 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
         this.customName = textComponent;
     }
 
-    @Override
-    @NotNull
-    public Component getDisplayName() {
-        return Objects.requireNonNullElseGet(this.customName, () -> this.getBlockState()
-                .getBlock()
-                .getName());
-    }
-
     private LazyOptional<ResourceStorageStorage> getResourceStorageStorage() {
         if (this.getLevel() instanceof ServerLevel serverLevel) {
             if (serverLevel.dimension() == Level.OVERWORLD) {
@@ -173,39 +170,8 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
                 );
     }
 
-    private IItemHandler getHandler() {
-        return this.getHandlerOpt()
-                .orElseThrow();
-    }
-
-    @Nullable
-    @Override
-    @ParametersAreNonnullByDefault
-    public AbstractContainerMenu createMenu(int pContainerId, Inventory pInventory, Player pPlayer) {
-        this.startOpen(pPlayer);
-        List<Pair<UUID, ResourceGroup>> toPick = this.getGroupsForChoices();
-        if (toPick.isEmpty()) {
-            return new ResourceStorageMenu(
-                    DailyResourcesBlocks.STORAGE_MENU.get(),
-                    pContainerId,
-                    pInventory,
-                    this.getHandler(),
-                    this.getUniqueId(),
-                    this::stillValid,
-                    this::stopOpen
-            );
-        } else {
-            return new ResourceSelectorMenu<>(
-                    DailyResourcesBlocks.ITEM_SELECTOR_MENU.get(),
-                    pContainerId,
-                    pInventory,
-                    this::stillValid,
-                    this::stopOpen,
-                    this::onConfirmed,
-                    toPick,
-                    DailyResourcesResources.ITEMSTACK.get()
-            );
-        }
+    public IItemHandler getHandler() {
+        return this.wrapperHandler.orElseThrow(() -> new IllegalStateException("Found No Wrapper"));
     }
 
     private LazyOptional<IItemHandler> getExternalHandler() {
@@ -238,6 +204,10 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
                 .toList();
     }
 
+    public List<Pair<UUID, ResourceGroup>> getCachedGroupsForChoices() {
+        return this.cachedGroups.get();
+    }
+
     public void remove() {
         this.getResourceStorageStorage()
                 .ifPresent(resourceStorageStorage -> {
@@ -252,6 +222,32 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
                 });
     }
 
+    @Override
+    @NotNull
+    public Component getName() {
+        if (this.hasCustomName()) {
+            return this.customName;
+        } else {
+            return this.getBlockState()
+                    .getBlock()
+                    .getName();
+        }
+    }
+
+    @Nullable
+    @Override
+    public Component getCustomName() {
+        return this.customName;
+    }
+
+    public ContainerLevelAccess createLevelAccess() {
+        if (this.getLevel() != null) {
+            return ContainerLevelAccess.create(this.getLevel(), this.getBlockPos());
+        } else {
+            return ContainerLevelAccess.NULL;
+        }
+    }
+
     private static void dropContents(Level pLevel, double pX, double pY, double pZ, IItemHandler pInventory) {
         for (int i = 0; i < pInventory.getSlots(); ++i) {
             Containers.dropItemStack(pLevel, pX, pY, pZ, pInventory.getStackInSlot(i));
@@ -259,7 +255,7 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
 
     }
 
-    private boolean onConfirmed(UUID id, ResourceGroup resourceGroup, Choice<ItemStack> choice, UUID owner) {
+    public boolean onConfirmed(UUID id, ResourceGroup resourceGroup, Choice<ItemStack> choice, UUID owner) {
         Optional<ResourceLocation> resourceGroupId = DailyResources.RESOURCE_GROUP_MANAGER.getId(resourceGroup);
         if (this.externalHandler != null) {
             this.externalHandler.invalidate();
@@ -281,18 +277,6 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
                     ));
                 })
                 .orElse(false);
-    }
-
-    public boolean stillValid(Player pPlayer) {
-        if (this.getLevel() == null || this.getLevel().getBlockEntity(this.worldPosition) != this) {
-            return false;
-        } else {
-            return 64.0D > pPlayer.distanceToSqr(
-                    (double) this.worldPosition.getX() + 0.5D,
-                    (double) this.worldPosition.getY() + 0.5D,
-                    (double) this.worldPosition.getZ() + 0.5D
-            );
-        }
     }
 
     @Override
@@ -397,17 +381,26 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public int calculateComparator() {
-        return ItemHandlerHelper.calcRedstoneFromInventory(this.getHandler());
+        return this.wrapperHandler.map(ItemHandlerHelper::calcRedstoneFromInventory)
+                .orElse(0);
     }
 
-    public void openMenu(Player pPlayer) {
+    public void openMenu(Player pPlayer, @Nullable ResourceScreenType resourceScreenType) {
+        this.startOpen(pPlayer);
         if (pPlayer instanceof ServerPlayer serverPlayer) {
+            List<Pair<UUID, ResourceGroup>> choices = this.getGroupsForChoices();
+            if (resourceScreenType == null) {
+                resourceScreenType = choices.isEmpty() ? ResourceScreenType.ITEM_STORAGE : ResourceScreenType.ITEM_SELECTOR;
+            }
+            ResourceScreenType finalResourceScreenType = resourceScreenType;
             NetworkHooks.openGui(
                     serverPlayer,
-                    this,
+                    new BasicMenuProvider<>(
+                            resourceScreenType.getDisplayName(),
+                            resourceScreenType.getMenuFunction(this)
+                    ),
                     friendlyByteBuf -> {
-                        List<Pair<UUID, ResourceGroup>> choices = this.getGroupsForChoices();
-                        if (!choices.isEmpty()) {
+                        if (finalResourceScreenType == ResourceScreenType.ITEM_SELECTOR) {
                             friendlyByteBuf.writeCollection(
                                     choices,
                                     (listByteBuf, pair) -> {
@@ -416,6 +409,20 @@ public class ResourceStorageBlockEntity extends BlockEntity implements MenuProvi
                                     }
                             );
                         }
+                        friendlyByteBuf.writeCollection(
+                                finalResourceScreenType.getTabs(
+                                        this.getBlockState().getBlock(),
+                                        this.getCachedGroupsForChoices()
+                                ),
+                                (listByteBuf, tab) -> {
+                                    listByteBuf.writeItem(tab.icon());
+                                    listByteBuf.writeCollection(
+                                            tab.components(),
+                                            (subListByteBuffer, component) -> subListByteBuffer.writeWithCodec(Codecs.COMPONENT, component)
+                                    );
+                                    listByteBuf.writeEnum(tab.marker());
+                                }
+                        );
                     }
             );
         }

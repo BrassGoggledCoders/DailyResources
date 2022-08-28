@@ -24,7 +24,7 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import xyz.brassgoggledcoders.dailyresources.blockentity.ResourceStorageBlockEntity;
+import xyz.brassgoggledcoders.dailyresources.blockentity.ItemResourceStorageBlockEntity;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesBlocks;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -49,8 +49,8 @@ public class ResourceBarrelBlock extends Block implements EntityBlock {
         if (pLevel.isClientSide) {
             return InteractionResult.SUCCESS;
         } else {
-            if (pLevel.getBlockEntity(pPos) instanceof ResourceStorageBlockEntity resourceStorageBlockEntity) {
-                resourceStorageBlockEntity.openMenu(pPlayer);
+            if (pLevel.getBlockEntity(pPos) instanceof ItemResourceStorageBlockEntity resourceStorageBlockEntity) {
+                resourceStorageBlockEntity.openMenu(pPlayer, null);
                 pPlayer.awardStat(Stats.OPEN_BARREL);
                 PiglinAi.angerNearbyPiglins(pPlayer, true);
             }
@@ -64,7 +64,7 @@ public class ResourceBarrelBlock extends Block implements EntityBlock {
     @ParametersAreNonnullByDefault
     public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pIsMoving) {
         if (!pState.is(pNewState.getBlock())) {
-            if (pLevel.getBlockEntity(pPos) instanceof ResourceStorageBlockEntity resourceStorageBlockEntity) {
+            if (pLevel.getBlockEntity(pPos) instanceof ItemResourceStorageBlockEntity resourceStorageBlockEntity) {
                 resourceStorageBlockEntity.remove();
                 pLevel.updateNeighbourForOutputSignal(pPos, this);
             }
@@ -78,7 +78,7 @@ public class ResourceBarrelBlock extends Block implements EntityBlock {
     @ParametersAreNonnullByDefault
     public void tick(BlockState pState, ServerLevel pLevel, BlockPos pPos, Random pRandom) {
         BlockEntity blockentity = pLevel.getBlockEntity(pPos);
-        if (blockentity instanceof ResourceStorageBlockEntity resourceStorageBlockEntity) {
+        if (blockentity instanceof ItemResourceStorageBlockEntity resourceStorageBlockEntity) {
             resourceStorageBlockEntity.recheckOpen();
         }
     }
@@ -96,7 +96,7 @@ public class ResourceBarrelBlock extends Block implements EntityBlock {
     public void setPlacedBy(Level pLevel, BlockPos pPos, BlockState pState, @Nullable LivingEntity pPlacer, ItemStack pStack) {
         if (pStack.hasCustomHoverName()) {
             BlockEntity blockentity = pLevel.getBlockEntity(pPos);
-            if (blockentity instanceof ResourceStorageBlockEntity resourceStorageBlockEntity) {
+            if (blockentity instanceof ItemResourceStorageBlockEntity resourceStorageBlockEntity) {
                 resourceStorageBlockEntity.setCustomName(pStack.getHoverName());
             }
         }
@@ -115,7 +115,7 @@ public class ResourceBarrelBlock extends Block implements EntityBlock {
     @ParametersAreNonnullByDefault
     public int getAnalogOutputSignal(BlockState pBlockState, Level pLevel, BlockPos pPos) {
         return DailyResourcesBlocks.STORAGE_BLOCK_ENTITY.get(pLevel, pPos)
-                .map(ResourceStorageBlockEntity::calculateComparator)
+                .map(ItemResourceStorageBlockEntity::calculateComparator)
                 .orElse(0);
     }
 

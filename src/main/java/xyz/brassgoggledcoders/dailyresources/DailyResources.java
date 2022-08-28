@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesBlocks;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesResources;
+import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesText;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesTriggers;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceGroup;
 import xyz.brassgoggledcoders.dailyresources.selector.CodecReloadListener;
@@ -28,6 +29,7 @@ public class DailyResources {
     public DailyResources() {
         DailyResourcesBlocks.setup();
         DailyResourcesResources.setup();
+        DailyResourcesText.setup();
         DailyResourcesTriggers.setup();
     }
 

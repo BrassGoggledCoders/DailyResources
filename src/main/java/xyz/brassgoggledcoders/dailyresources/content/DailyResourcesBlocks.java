@@ -10,7 +10,7 @@ import net.minecraft.world.level.material.Material;
 import net.minecraftforge.client.model.generators.ModelFile;
 import xyz.brassgoggledcoders.dailyresources.DailyResources;
 import xyz.brassgoggledcoders.dailyresources.block.ResourceBarrelBlock;
-import xyz.brassgoggledcoders.dailyresources.blockentity.ResourceStorageBlockEntity;
+import xyz.brassgoggledcoders.dailyresources.blockentity.ItemResourceStorageBlockEntity;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceSelectorMenu;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceStorageMenu;
 import xyz.brassgoggledcoders.dailyresources.screen.ResourceSelectorScreen;
@@ -51,10 +51,10 @@ public class DailyResourcesBlocks {
             .build()
             .register();
 
-    public static final BlockEntityEntry<ResourceStorageBlockEntity> STORAGE_BLOCK_ENTITY =
+    public static final BlockEntityEntry<ItemResourceStorageBlockEntity> STORAGE_BLOCK_ENTITY =
             DailyResources.getRegistrate()
                     .object("storage")
-                    .blockEntity(ResourceStorageBlockEntity::new)
+                    .blockEntity(ItemResourceStorageBlockEntity::new)
                     .validBlock(BARREL)
                     .register();
 

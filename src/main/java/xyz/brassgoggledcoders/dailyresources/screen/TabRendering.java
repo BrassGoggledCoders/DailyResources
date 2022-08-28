@@ -86,8 +86,4 @@ public class TabRendering {
             }
         }
     }
-
-    public record Tab<T>(ItemStack icon, List<Component> components, T marker) {
-
-    }
 }

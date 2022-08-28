@@ -19,7 +19,7 @@ public class DailyResourcesTriggers {
             .simple(Trigger.class, () -> new Trigger(new ResourceLocation("item/compass_18")));
     public static final RegistryEntry<Trigger> DAWN = DailyResources.getRegistrate()
             .object("dawn")
-            .simple(Trigger.class, () -> new Trigger(new ResourceLocation("item/clock_47")));
+            .simple(Trigger.class, () -> new Trigger(new ResourceLocation("item/clock_48")));
 
     public static final RegistryEntry<Trigger> NOON = DailyResources.getRegistrate()
             .object("noon")

@@ -18,7 +18,6 @@ import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesText;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceSelectorMenu;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceStorageMenu;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceGroup;
-import xyz.brassgoggledcoders.dailyresources.screen.TabRendering.Tab;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -88,8 +87,12 @@ public enum ResourceScreenType {
                         inventory,
                         resourceStorageBlockEntity.getHandler(),
                         resourceStorageBlockEntity.getUniqueId(),
-                        player1 -> true,
-                        resourceStorageBlockEntity::stopOpen
+                        resourceStorageBlockEntity.createLevelAccess(),
+                        resourceStorageBlockEntity::stopOpen,
+                        this.getTabs(
+                                resourceStorageBlockEntity.getBlockState().getBlock(),
+                                resourceStorageBlockEntity.getCachedGroupsForChoices()
+                        )
                 );
             } else {
                 return null;

@@ -16,7 +16,7 @@ import xyz.brassgoggledcoders.dailyresources.resource.Choice;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceGroup;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceType;
 import xyz.brassgoggledcoders.dailyresources.screen.ResourceScreenType;
-import xyz.brassgoggledcoders.dailyresources.screen.TabRendering.Tab;
+import xyz.brassgoggledcoders.dailyresources.screen.Tab;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -4,6 +4,7 @@ import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.entry.MenuEntry;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.material.Material;
@@ -26,6 +27,7 @@ public class DailyResourcesBlocks {
             .properties(properties -> properties.strength(2.5F)
                     .sound(SoundType.WOOD)
             )
+            .tag(BlockTags.MINEABLE_WITH_AXE)
             .addLayer(() -> RenderType::cutout)
             .blockstate((context, provider) -> {
                 ModelFile openBarrel = provider.models().cubeBottomTop(
@@ -66,6 +68,7 @@ public class DailyResourcesBlocks {
             .properties(properties -> properties.strength(5.5F)
                     .sound(SoundType.METAL)
             )
+            .tag(BlockTags.MINEABLE_WITH_PICKAXE)
             .blockstate((context, provider) -> provider.simpleBlock(
                     context.get(),
                     provider.models()

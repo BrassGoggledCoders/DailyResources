@@ -10,6 +10,7 @@ import net.minecraft.world.level.material.Material;
 import net.minecraftforge.client.model.generators.ModelFile;
 import xyz.brassgoggledcoders.dailyresources.DailyResources;
 import xyz.brassgoggledcoders.dailyresources.block.ResourceBarrelBlock;
+import xyz.brassgoggledcoders.dailyresources.block.ResourceTankBlock;
 import xyz.brassgoggledcoders.dailyresources.blockentity.ItemResourceStorageBlockEntity;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceSelectorMenu;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceStorageMenu;
@@ -69,6 +70,25 @@ public class DailyResourcesBlocks {
                     ResourceSelectorMenu::createItem,
                     () -> ResourceSelectorScreen::new
             )
+            .register();
+
+    public static final BlockEntry<ResourceTankBlock> TANK = DailyResources.getRegistrate()
+            .object("iron_tank")
+            .block(ResourceTankBlock::new)
+            .initialProperties(Material.METAL)
+            .properties(properties -> properties.strength(5.5F)
+                    .sound(SoundType.METAL)
+            )
+            .blockstate((context, provider) -> provider.simpleBlock(
+                    context.get(),
+                    provider.models()
+                            .withExistingParent(context.getName(), provider.modLoc("block/tank"))
+                            .texture("barrel_bottom", provider.modLoc("block/barrel_bottom"))
+                            .texture("barrel_side", provider.modLoc("block/barrel_side"))
+                            .texture("barrel_top", provider.modLoc("block/barrel_top"))
+            ))
+            .item()
+            .build()
             .register();
 
     public static void setup() {

@@ -1,0 +1,8 @@
+{
+  "parent": "daily_resources:block/tank",
+  "textures": {
+    "barrel_bottom": "daily_resources:block/barrel_bottom",
+    "barrel_side": "daily_resources:block/barrel_side",
+    "barrel_top": "daily_resources:block/barrel_top"
+  }
+}

@@ -83,9 +83,9 @@ public class DailyResourcesBlocks {
                     context.get(),
                     provider.models()
                             .withExistingParent(context.getName(), provider.modLoc("block/tank"))
-                            .texture("barrel_bottom", provider.modLoc("block/barrel_bottom"))
-                            .texture("barrel_side", provider.modLoc("block/barrel_side"))
-                            .texture("barrel_top", provider.modLoc("block/barrel_top"))
+                            .texture("tank_bottom", provider.modLoc("block/tank_bottom"))
+                            .texture("tank_side", provider.modLoc("block/tank_side"))
+                            .texture("tank_top", provider.modLoc("block/tank_top"))
             ))
             .item()
             .build()

@@ -2,7 +2,7 @@
   "credit": "Made with Blockbench",
   "parent": "block/block",
   "textures": {
-    "particle": "#barrel_bottom"
+    "particle": "#tank_bottom"
   },
   "elements": [
     {
@@ -24,7 +24,7 @@
             14,
             14
           ],
-          "texture": "#barrel_bottom"
+          "texture": "#tank_bottom"
         },
         "down": {
           "uv": [
@@ -33,7 +33,7 @@
             14,
             14
           ],
-          "texture": "#barrel_bottom"
+          "texture": "#tank_bottom"
         }
       }
     },
@@ -56,7 +56,7 @@
             16,
             16
           ],
-          "texture": "#barrel_side"
+          "texture": "#tank_side"
         },
         "east": {
           "uv": [
@@ -65,7 +65,7 @@
             16,
             16
           ],
-          "texture": "#barrel_side"
+          "texture": "#tank_side"
         },
         "south": {
           "uv": [
@@ -74,7 +74,7 @@
             16,
             16
           ],
-          "texture": "#barrel_side"
+          "texture": "#tank_side"
         },
         "west": {
           "uv": [
@@ -83,7 +83,7 @@
             2,
             16
           ],
-          "texture": "#barrel_side"
+          "texture": "#tank_side"
         },
         "up": {
           "uv": [
@@ -92,7 +92,7 @@
             16,
             2
           ],
-          "texture": "#barrel_top"
+          "texture": "#tank_top"
         },
         "down": {
           "uv": [
@@ -101,7 +101,7 @@
             16,
             16
           ],
-          "texture": "#barrel_bottom"
+          "texture": "#tank_bottom"
         }
       }
     },
@@ -124,7 +124,7 @@
             16,
             16
           ],
-          "texture": "#barrel_side"
+          "texture": "#tank_side"
         },
         "east": {
           "uv": [
@@ -133,7 +133,7 @@
             2,
             16
           ],
-          "texture": "#barrel_side"
+          "texture": "#tank_side"
         },
         "south": {
           "uv": [
@@ -142,7 +142,7 @@
             16,
             16
           ],
-          "texture": "#barrel_side"
+          "texture": "#tank_side"
         },
         "west": {
           "uv": [
@@ -151,7 +151,7 @@
             16,
             16
           ],
-          "texture": "#barrel_side"
+          "texture": "#tank_side"
         },
         "up": {
           "uv": [
@@ -160,7 +160,7 @@
             16,
             16
           ],
-          "texture": "#barrel_top"
+          "texture": "#tank_top"
         },
         "down": {
           "uv": [
@@ -169,7 +169,7 @@
             16,
             2
           ],
-          "texture": "#barrel_bottom"
+          "texture": "#tank_bottom"
         }
       }
     },
@@ -192,7 +192,7 @@
             14,
             16
           ],
-          "texture": "#barrel_side"
+          "texture": "#tank_side"
         },
         "west": {
           "uv": [
@@ -201,7 +201,7 @@
             14,
             16
           ],
-          "texture": "#barrel_side"
+          "texture": "#tank_side"
         },
         "up": {
           "uv": [
@@ -210,7 +210,7 @@
             16,
             14
           ],
-          "texture": "#barrel_top"
+          "texture": "#tank_top"
         },
         "down": {
           "uv": [
@@ -219,7 +219,7 @@
             16,
             14
           ],
-          "texture": "#barrel_bottom"
+          "texture": "#tank_bottom"
         }
       }
     },
@@ -242,7 +242,7 @@
             14,
             16
           ],
-          "texture": "#barrel_side"
+          "texture": "#tank_side"
         },
         "west": {
           "uv": [
@@ -251,7 +251,7 @@
             14,
             16
           ],
-          "texture": "#barrel_side"
+          "texture": "#tank_side"
         },
         "up": {
           "uv": [
@@ -260,7 +260,7 @@
             2,
             14
           ],
-          "texture": "#barrel_top"
+          "texture": "#tank_top"
         },
         "down": {
           "uv": [
@@ -269,7 +269,7 @@
             2,
             14
           ],
-          "texture": "#barrel_bottom"
+          "texture": "#tank_bottom"
         }
       }
     },
@@ -292,7 +292,7 @@
             14,
             14
           ],
-          "texture": "#barrel_side"
+          "texture": "#tank_side"
         },
         "west": {
           "uv": [
@@ -301,7 +301,7 @@
             14,
             14
           ],
-          "texture": "#barrel_side"
+          "texture": "#tank_side"
         },
         "up": {
           "uv": [
@@ -311,7 +311,7 @@
             14
           ],
           "rotation": 180,
-          "texture": "#barrel_bottom"
+          "texture": "#tank_bottom"
         }
       }
     },
@@ -334,7 +334,7 @@
             14,
             14
           ],
-          "texture": "#barrel_side"
+          "texture": "#tank_side"
         },
         "south": {
           "uv": [
@@ -343,7 +343,7 @@
             7,
             14
           ],
-          "texture": "#barrel_side"
+          "texture": "#tank_side"
         },
         "up": {
           "uv": [
@@ -353,7 +353,7 @@
             9
           ],
           "rotation": 180,
-          "texture": "#barrel_bottom"
+          "texture": "#tank_bottom"
         }
       }
     },
@@ -376,7 +376,7 @@
             7,
             14
           ],
-          "texture": "#barrel_side"
+          "texture": "#tank_side"
         },
         "south": {
           "uv": [
@@ -385,7 +385,7 @@
             14,
             14
           ],
-          "texture": "#barrel_side"
+          "texture": "#tank_side"
         },
         "up": {
           "uv": [
@@ -395,7 +395,7 @@
             9
           ],
           "rotation": 180,
-          "texture": "#barrel_bottom"
+          "texture": "#tank_bottom"
         }
       }
     }

@@ -16,6 +16,7 @@ import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 import xyz.brassgoggledcoders.dailyresources.DailyResources;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceSelectorMenu;
+import xyz.brassgoggledcoders.dailyresources.network.NetworkHandler;
 import xyz.brassgoggledcoders.dailyresources.resource.Choice;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceGroup;
 
@@ -197,7 +198,7 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
             if (d0 >= 0.0D && d1 >= 0.0D && d0 < 16.0D && d1 < 18.0D &&
                     this.menu.clickMenuButton(Objects.requireNonNull(this.getMinecraft().player), l)) {
                 Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_STONECUTTER_SELECT_RECIPE, 1.0F));
-                Objects.requireNonNull(this.getMinecraft().gameMode).handleInventoryButtonClick((this.menu).containerId, l);
+                NetworkHandler.getInstance().sendMenuClick((this.menu).containerId, l);
                 return true;
             }
         }
@@ -211,9 +212,9 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
             double d1 = pMouseY - (double) (j + groupIndex / 2 * 18);
 
             if (d0 >= 0.0D && d1 >= 0.0D && d0 < 16.0D && d1 < 18.0D &&
-                    this.menu.clickMenuButton(Objects.requireNonNull(this.getMinecraft().player), groupIndex + 1000)) {
+                    this.menu.clickMenuButton(Objects.requireNonNull(this.getMinecraft().player), groupIndex + this.menu.getNumChoices())) {
                 Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_STONECUTTER_SELECT_RECIPE, 1.0F));
-                Objects.requireNonNull(this.getMinecraft().gameMode).handleInventoryButtonClick((this.menu).containerId, groupIndex + 1000);
+                NetworkHandler.getInstance().sendMenuClick((this.menu).containerId, groupIndex + this.menu.getNumChoices());
                 return true;
             }
         }
@@ -237,8 +238,8 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
 
     public boolean tabClick(ResourceScreenType type) {
         if (type == ResourceScreenType.ITEM_STORAGE) {
-            if (this.menu.clickMenuButton(Objects.requireNonNull(Minecraft.getInstance().player), 2000)) {
-                Objects.requireNonNull(this.getMinecraft().gameMode).handleInventoryButtonClick((this.menu).containerId, 2000);
+            if (this.menu.clickMenuButton(Objects.requireNonNull(Minecraft.getInstance().player), this.menu.getTabId())) {
+                NetworkHandler.getInstance().sendMenuClick((this.menu).containerId, this.menu.getTabId());
                 return true;
             }
         }

@@ -11,6 +11,7 @@ import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesBlocks;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesResources;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesText;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesTriggers;
+import xyz.brassgoggledcoders.dailyresources.network.NetworkHandler;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceGroup;
 import xyz.brassgoggledcoders.dailyresources.selector.CodecReloadListener;
 
@@ -31,6 +32,8 @@ public class DailyResources {
         DailyResourcesResources.setup();
         DailyResourcesText.setup();
         DailyResourcesTriggers.setup();
+
+        NetworkHandler.getInstance();
     }
 
     public static Registrate getRegistrate() {

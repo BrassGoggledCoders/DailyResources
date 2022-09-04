@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceStorageMenu;
+import xyz.brassgoggledcoders.dailyresources.network.NetworkHandler;
 
 import java.util.Objects;
 
@@ -63,7 +64,7 @@ public class ResourceStorageScreen extends AbstractContainerScreen<ResourceStora
     private boolean tabClicked(ResourceScreenType resourceScreenType) {
         if (resourceScreenType == ResourceScreenType.ITEM_SELECTOR) {
             if (this.menu.clickMenuButton(Objects.requireNonNull(Minecraft.getInstance().player), 0)) {
-                Objects.requireNonNull(this.getMinecraft().gameMode).handleInventoryButtonClick((this.menu).containerId, 0);
+                NetworkHandler.getInstance().sendMenuClick((this.menu).containerId, 0);
                 return true;
             }
         }

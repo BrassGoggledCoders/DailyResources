@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import xyz.brassgoggledcoders.dailyresources.blockentity.ItemResourceStorageBlockEntity;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesBlocks;
+import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesContainers;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesResources;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesText;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceSelectorMenu;
@@ -33,7 +34,7 @@ public enum ResourceScreenType {
         ) {
             if (blockEntity instanceof ItemResourceStorageBlockEntity resourceStorageBlockEntity) {
                 return (containerId, inventory, player) -> new ResourceSelectorMenu<>(
-                        DailyResourcesBlocks.ITEM_SELECTOR_MENU.get(),
+                        DailyResourcesContainers.ITEM_SELECTOR_MENU.get(),
                         containerId,
                         inventory,
                         resourceStorageBlockEntity.createLevelAccess(),
@@ -82,7 +83,7 @@ public enum ResourceScreenType {
         ) {
             if (blockEntity instanceof ItemResourceStorageBlockEntity resourceStorageBlockEntity) {
                 return (containerId, inventory, player) -> new ResourceStorageMenu(
-                        DailyResourcesBlocks.STORAGE_MENU.get(),
+                        DailyResourcesContainers.STORAGE_MENU.get(),
                         containerId,
                         inventory,
                         resourceStorageBlockEntity.getHandler(),

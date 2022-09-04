@@ -59,19 +59,6 @@ public class DailyResourcesBlocks {
                     .validBlock(BARREL)
                     .register();
 
-    public static final MenuEntry<ResourceStorageMenu> STORAGE_MENU = DailyResources.getRegistrate()
-            .object("storage")
-            .menu(ResourceStorageMenu::create, () -> ResourceStorageScreen::new)
-            .register();
-
-    public static final MenuEntry<ResourceSelectorMenu<ItemStack>> ITEM_SELECTOR_MENU = DailyResources.getRegistrate()
-            .object("selector")
-            .<ResourceSelectorMenu<ItemStack>, ResourceSelectorScreen<ItemStack>>menu(
-                    ResourceSelectorMenu::createItem,
-                    () -> ResourceSelectorScreen::new
-            )
-            .register();
-
     public static final BlockEntry<ResourceTankBlock> TANK = DailyResources.getRegistrate()
             .object("iron_tank")
             .block(ResourceTankBlock::new)

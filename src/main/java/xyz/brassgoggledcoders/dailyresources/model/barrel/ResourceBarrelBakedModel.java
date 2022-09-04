@@ -12,14 +12,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraftforge.client.model.SimpleModelState;
 import net.minecraftforge.client.model.data.EmptyModelData;
 import net.minecraftforge.client.model.data.IModelData;
 import net.minecraftforge.client.model.data.ModelDataMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import xyz.brassgoggledcoders.dailyresources.block.ResourceBarrelBlock;
-import xyz.brassgoggledcoders.dailyresources.blockentity.ItemResourceStorageBlockEntity;
+import xyz.brassgoggledcoders.dailyresources.blockentity.ResourceStorageBlockEntity;
 import xyz.brassgoggledcoders.dailyresources.trigger.Trigger;
 
 import java.util.ArrayList;
@@ -49,9 +49,18 @@ public class ResourceBarrelBakedModel implements BakedModel {
     @NotNull
     public List<BakedQuad> getQuads(@Nullable BlockState pState, @Nullable Direction pSide, @NotNull Random pRand, @NotNull IModelData modelData) {
         List<BakedQuad> bakedQuads = new ArrayList<>(model.getQuads(pState, pSide, pRand, EmptyModelData.INSTANCE));
-        Trigger trigger = modelData.getData(ItemResourceStorageBlockEntity.TRIGGER_PROPERTY);
+        Trigger trigger = modelData.getData(ResourceStorageBlockEntity.TRIGGER_PROPERTY);
         if (trigger != null) {
-            Direction facing = pState != null ? pState.getValue(ResourceBarrelBlock.FACING) : Direction.UP;
+            Direction facing;
+            if (pState == null) {
+                facing = Direction.NORTH;
+            } else if (pState.hasProperty(BlockStateProperties.FACING)) {
+                facing = pState.getValue(BlockStateProperties.FACING);
+            } else if (pState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+                facing = pState.getValue(BlockStateProperties.HORIZONTAL_FACING);
+            } else {
+                facing = Direction.NORTH;
+            }
             bakedQuads.add(BlockModel.makeBakedQuad(
                     new BlockElement(
                             new Vector3f(0, 0, 0),
@@ -116,9 +125,9 @@ public class ResourceBarrelBakedModel implements BakedModel {
     @NotNull
     @Override
     public IModelData getModelData(@NotNull BlockAndTintGetter level, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull IModelData modelData) {
-        if (level.getBlockEntity(pos) instanceof ItemResourceStorageBlockEntity resourceStorageBlockEntity) {
+        if (level.getBlockEntity(pos) instanceof ResourceStorageBlockEntity resourceStorageBlockEntity) {
             return new ModelDataMap.Builder()
-                    .withInitial(ItemResourceStorageBlockEntity.TRIGGER_PROPERTY, resourceStorageBlockEntity.getTrigger())
+                    .withInitial(ResourceStorageBlockEntity.TRIGGER_PROPERTY, resourceStorageBlockEntity.getTrigger())
                     .build();
         } else {
             return EmptyModelData.INSTANCE;

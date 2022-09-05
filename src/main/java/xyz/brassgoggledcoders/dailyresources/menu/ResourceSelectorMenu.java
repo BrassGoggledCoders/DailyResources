@@ -99,13 +99,13 @@ public class ResourceSelectorMenu<T> extends AbstractContainerMenu {
 
     @Override
     public boolean clickMenuButton(@NotNull Player pPlayer, int pId) {
-        if (pId == this.getTabId()) {
+        if (pId == -100) {
             this.levelAccess.execute((level, blockPos) -> DailyResourcesBlocks.STORAGE_BLOCK_ENTITY.get(level, blockPos)
                     .ifPresent(storage -> storage.openMenu(pPlayer, ResourceScreenType.ITEM_STORAGE))
             );
             return true;
-        } else if (pId >= this.getNumChoices() && pId < this.getNumChoices() + this.groupsToChoose.size()) {
-            int groupIndex = pId - this.getNumChoices();
+        } else if (pId < 0) {
+            int groupIndex = Math.abs(pId) - 1;
             if (this.hasValidGroupIndex(groupIndex)) {
                 this.selectedGroupIndex.set(groupIndex);
                 return true;

@@ -212,9 +212,9 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
             double d1 = pMouseY - (double) (j + groupIndex / 2 * 18);
 
             if (d0 >= 0.0D && d1 >= 0.0D && d0 < 16.0D && d1 < 18.0D &&
-                    this.menu.clickMenuButton(Objects.requireNonNull(this.getMinecraft().player), groupIndex + this.menu.getNumChoices())) {
+                    this.menu.clickMenuButton(Objects.requireNonNull(this.getMinecraft().player), (groupIndex + 1) * -1)) {
                 Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_STONECUTTER_SELECT_RECIPE, 1.0F));
-                NetworkHandler.getInstance().sendMenuClick((this.menu).containerId, groupIndex + this.menu.getNumChoices());
+                NetworkHandler.getInstance().sendMenuClick((this.menu).containerId, (groupIndex + 1) * -1);
                 return true;
             }
         }
@@ -238,8 +238,8 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
 
     public boolean tabClick(ResourceScreenType type) {
         if (type == ResourceScreenType.ITEM_STORAGE) {
-            if (this.menu.clickMenuButton(Objects.requireNonNull(Minecraft.getInstance().player), this.menu.getTabId())) {
-                NetworkHandler.getInstance().sendMenuClick((this.menu).containerId, this.menu.getTabId());
+            if (this.menu.clickMenuButton(Objects.requireNonNull(Minecraft.getInstance().player), -100)) {
+                NetworkHandler.getInstance().sendMenuClick((this.menu).containerId, -100);
                 return true;
             }
         }

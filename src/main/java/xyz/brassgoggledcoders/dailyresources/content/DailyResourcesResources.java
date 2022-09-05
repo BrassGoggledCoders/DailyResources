@@ -2,10 +2,13 @@ package xyz.brassgoggledcoders.dailyresources.content;
 
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryBuilder;
 import xyz.brassgoggledcoders.dailyresources.DailyResources;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceType;
+import xyz.brassgoggledcoders.dailyresources.resource.fluid.FluidStackResource;
+import xyz.brassgoggledcoders.dailyresources.resource.fluid.FluidStackResourceStorage;
 import xyz.brassgoggledcoders.dailyresources.resource.item.ItemStackResource;
 import xyz.brassgoggledcoders.dailyresources.resource.item.ItemStackResourceStorage;
 
@@ -25,6 +28,15 @@ public class DailyResourcesResources {
                     ItemStack.class,
                     ItemStackResource.CODEC,
                     ItemStackResourceStorage.CODEC.get(),
+                    Function.identity()
+            ));
+
+    public static final RegistryEntry<ResourceType<FluidStack>> FLUIDSTACK = DailyResources.getRegistrate()
+            .object("fluidstack")
+            .simple(ResourceType.class, () -> new ResourceType<>(
+                    FluidStack.class,
+                    FluidStackResource.CODEC,
+                    FluidStackResourceStorage.CODEC.get(),
                     Function.identity()
             ));
 

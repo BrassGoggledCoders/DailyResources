@@ -37,7 +37,7 @@ public class ItemStackResource implements Resource<ItemStack> {
     @SuppressWarnings({"unchecked"})
     public static final Supplier<Codec<Choice<ItemStack>>> CHOICE_CODEC = Suppliers.memoize(() ->
             RecordCodecBuilder.create(instance -> instance.group(
-                    Resource.CODEC.get().fieldOf("resource").forGetter(Choice::getResource),
+                    Resource.RESOURCE_CODEC.get().fieldOf("resource").forGetter(Choice::getResource),
                     ItemStack.CODEC.fieldOf("object").forGetter(Choice::getObject)
             ).apply(instance, (resource, object) -> new Choice<>((Resource<ItemStack>) resource, object)))
     );

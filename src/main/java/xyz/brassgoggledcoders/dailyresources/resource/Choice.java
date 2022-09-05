@@ -7,7 +7,7 @@ import net.minecraft.world.item.ItemStack;
 import java.util.function.Supplier;
 
 public class Choice<T> {
-    public static final Supplier<Codec<Choice<?>>> CODEC = Suppliers.memoize(() -> Resource.CODEC.get()
+    public static final Supplier<Codec<Choice<?>>> CODEC = Suppliers.memoize(() -> Resource.RESOURCE_CODEC.get()
             .dispatch(
                     Choice::getResource,
                     Resource::getChoiceCodec

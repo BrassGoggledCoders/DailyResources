@@ -77,7 +77,7 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
         this.blit(pPoseStack, i + 91, j + 15 + k, 176 + (this.isScrollBarActive() ? 0 : 12), 0, 12, 15);
         int l = this.leftPos + 8;
         int i1 = this.topPos + 14;
-        int j1 = this.startIndex + 12;
+        int j1 = this.startIndex + 15;
         this.renderButtons(pPoseStack, pX, pY, l, i1, j1);
         this.renderItemStacks(l, i1, j1);
     }
@@ -87,7 +87,7 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
         super.renderTooltip(pPoseStack, mouseX, mouseY);
         int i = this.leftPos + 4;
         int j = this.topPos + 14;
-        int k = this.startIndex + 12;
+        int k = this.startIndex + 15;
         List<Choice<T>> list = this.menu.getChoices();
 
         for (int l = this.startIndex; l < k && l < this.menu.getNumChoices(); ++l) {
@@ -189,7 +189,7 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
         this.scrolling = false;
         int i = this.leftPos + 8;
         int j = this.topPos + 14;
-        int k = this.startIndex + 12;
+        int k = this.startIndex + 15;
 
         for (int l = this.startIndex; l < k; ++l) {
             int i1 = l - this.startIndex;
@@ -252,7 +252,7 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
             int j = i + 54;
             this.scrollOffs = ((float) pMouseY - (float) i - 7.5F) / ((float) (j - i) - 15.0F);
             this.scrollOffs = Mth.clamp(this.scrollOffs, 0.0F, 1.0F);
-            this.startIndex = (int) ((double) (this.scrollOffs * (float) this.getOffscreenRows()) + 0.5D) * 4;
+            this.startIndex = (int) ((double) (this.scrollOffs * (float) this.getOffscreenRows()) + 0.5D) * 5;
             return true;
         } else {
             return super.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
@@ -264,7 +264,7 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
             int i = this.getOffscreenRows();
             float f = (float) pDelta / (float) i;
             this.scrollOffs = Mth.clamp(this.scrollOffs - f, 0.0F, 1.0F);
-            this.startIndex = (int) ((double) (this.scrollOffs * (float) i) + 0.5D) * 4;
+            this.startIndex = (int) ((double) (this.scrollOffs * (float) i) + 0.5D) * 5;
         }
 
         return true;

@@ -203,23 +203,6 @@ public class ResourceSelectorMenu<T> extends AbstractContainerMenu {
         }
     }
 
-    public void confirmChoices(@NotNull Player pPlayer) {
-        for (int i = 0; i < this.getResourceGroups().size(); i++) {
-            if (this.selectedChoiceIndexes.get(i) >= 0) {
-                Pair<UUID, ResourceGroup> resourceGroupPair = this.getResourceGroups().get(i);
-                Choice<T> choice = this.getChoice(i);
-                if (choice != null) {
-                    this.onConfirmed.apply(
-                            resourceGroupPair.getFirst(),
-                            resourceGroupPair.getSecond(),
-                            choice,
-                            pPlayer.getUUID()
-                    );
-                }
-            }
-        }
-    }
-
     @NotNull
     public static <T> ResourceSelectorMenu<T> create(MenuType<ResourceSelectorMenu<T>> menuType, int id, Inventory inventory,
                                                      @Nullable FriendlyByteBuf friendlyByteBuf, ResourceType<T> resourceType) {

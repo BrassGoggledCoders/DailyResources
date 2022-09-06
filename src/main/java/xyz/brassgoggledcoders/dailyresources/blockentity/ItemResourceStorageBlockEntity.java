@@ -135,10 +135,6 @@ public class ItemResourceStorageBlockEntity extends ResourceStorageBlockEntity {
 
     }
 
-    public void clearCache() {
-        this.cachedGroups.clear();
-    }
-
     public boolean onConfirmed(UUID id, ResourceGroup resourceGroup, Choice<ItemStack> choice, UUID owner) {
         Optional<ResourceLocation> resourceGroupId = DailyResources.RESOURCE_GROUP_MANAGER.getId(resourceGroup);
         if (this.externalHandler != null) {

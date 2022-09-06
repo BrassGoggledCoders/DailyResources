@@ -26,12 +26,14 @@ import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorage;
 import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorageStorage;
 import xyz.brassgoggledcoders.dailyresources.codec.Codecs;
 import xyz.brassgoggledcoders.dailyresources.menu.BasicMenuProvider;
+import xyz.brassgoggledcoders.dailyresources.menu.ResourceSelectorMenu;
 import xyz.brassgoggledcoders.dailyresources.resource.Choice;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceGroup;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceStorageSelection;
 import xyz.brassgoggledcoders.dailyresources.resource.item.ItemStackResourceItemHandler;
 import xyz.brassgoggledcoders.dailyresources.resource.item.ItemStackResourceStorage;
 import xyz.brassgoggledcoders.dailyresources.screen.ResourceScreenType;
+import xyz.brassgoggledcoders.dailyresources.screen.ResourceSelectorScreen;
 
 import java.util.List;
 import java.util.Objects;
@@ -140,6 +142,8 @@ public class ItemResourceStorageBlockEntity extends ResourceStorageBlockEntity {
             this.externalHandler = null;
         }
 
+        this.clearCache();
+
         return resourceGroupId.isPresent() && this.getResourceStorageStorage()
                 .map(resourceStorageStorage -> {
                     ResourceStorage resourceStorage = resourceStorageStorage.getOrCreateResourceStorage(
@@ -171,6 +175,9 @@ public class ItemResourceStorageBlockEntity extends ResourceStorageBlockEntity {
     public void openMenu(Player pPlayer, @Nullable ResourceScreenType resourceScreenType) {
         this.startOpen(pPlayer);
         if (pPlayer instanceof ServerPlayer serverPlayer) {
+            if (pPlayer.containerMenu instanceof ResourceSelectorMenu<?> menu) {
+                menu.confirmChoices(pPlayer);
+            }
             List<Pair<UUID, ResourceGroup>> choices = this.getCachedGroupsForChoices();
             if (resourceScreenType == null) {
                 resourceScreenType = choices.isEmpty() ? ResourceScreenType.ITEM_STORAGE : ResourceScreenType.ITEM_SELECTOR;

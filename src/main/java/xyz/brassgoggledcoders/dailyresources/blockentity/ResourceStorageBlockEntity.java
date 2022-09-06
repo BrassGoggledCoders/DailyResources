@@ -249,4 +249,8 @@ public class ResourceStorageBlockEntity extends BlockEntity implements Nameable 
     public Map<UUID, ResourceLocation> getResourceGroups() {
         return this.resourceGroups;
     }
+
+    public void clearCache() {
+        this.cachedGroups.clear();
+    }
 }

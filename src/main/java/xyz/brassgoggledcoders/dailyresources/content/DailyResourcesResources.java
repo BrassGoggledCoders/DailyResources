@@ -27,8 +27,7 @@ public class DailyResourcesResources {
             .simple(ResourceType.class, () -> new ResourceType<>(
                     ItemStack.class,
                     ItemStackResource.CODEC,
-                    ItemStackResourceStorage.CODEC.get(),
-                    Function.identity()
+                    ItemStackResourceStorage.CODEC.get()
             ));
 
     public static final RegistryEntry<ResourceType<FluidStack>> FLUIDSTACK = DailyResources.getRegistrate()
@@ -36,8 +35,7 @@ public class DailyResourcesResources {
             .simple(ResourceType.class, () -> new ResourceType<>(
                     FluidStack.class,
                     FluidStackResource.CODEC,
-                    FluidStackResourceStorage.CODEC.get(),
-                    Function.identity()
+                    FluidStackResourceStorage.CODEC
             ));
 
     public static void setup() {

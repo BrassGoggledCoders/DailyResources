@@ -5,6 +5,7 @@ import net.minecraft.world.item.ItemStack;
 import xyz.brassgoggledcoders.dailyresources.DailyResources;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceSelectorMenu;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceStorageMenu;
+import xyz.brassgoggledcoders.dailyresources.screen.ItemResourceSelectorScreen;
 import xyz.brassgoggledcoders.dailyresources.screen.ResourceSelectorScreen;
 import xyz.brassgoggledcoders.dailyresources.screen.ResourceStorageScreen;
 
@@ -18,7 +19,7 @@ public class DailyResourcesContainers {
             .object("selector")
             .<ResourceSelectorMenu<ItemStack>, ResourceSelectorScreen<ItemStack>>menu(
                     ResourceSelectorMenu::createItem,
-                    () -> ResourceSelectorScreen::new
+                    () -> ItemResourceSelectorScreen::new
             )
             .register();
 

@@ -16,15 +16,10 @@ public class Choice<T> {
 
     private final Resource<T> resource;
     private final T object;
-    private final Supplier<ItemStack> asItemStack;
 
     public Choice(Resource<T> resource, T object) {
         this.resource = resource;
         this.object = object;
-        this.asItemStack = Suppliers.memoize(() -> this.getResource()
-                .getResourceType()
-                .asItemStack(this.getObject())
-        );
     }
 
     public Resource<T> getResource() {
@@ -33,9 +28,5 @@ public class Choice<T> {
 
     public T getObject() {
         return object;
-    }
-
-    public ItemStack asItemStack() {
-        return this.asItemStack.get();
     }
 }

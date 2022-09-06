@@ -33,7 +33,6 @@ import xyz.brassgoggledcoders.dailyresources.resource.ResourceStorageSelection;
 import xyz.brassgoggledcoders.dailyresources.resource.item.ItemStackResourceItemHandler;
 import xyz.brassgoggledcoders.dailyresources.resource.item.ItemStackResourceStorage;
 import xyz.brassgoggledcoders.dailyresources.screen.ResourceScreenType;
-import xyz.brassgoggledcoders.dailyresources.screen.ResourceSelectorScreen;
 
 import java.util.List;
 import java.util.Objects;
@@ -44,12 +43,12 @@ import java.util.function.Supplier;
 public class ItemResourceStorageBlockEntity extends ResourceStorageBlockEntity {
     private final Supplier<ResourceStorageOpenersCounter> containerOpenersCounter;
     private LazyOptional<IItemHandler> externalHandler;
-    private final LazyOptional<IItemHandler> wrapperHandler;
+    private LazyOptional<IItemHandler> wrapperHandler;
 
     public ItemResourceStorageBlockEntity(BlockEntityType<?> pType, BlockPos pWorldPosition, BlockState pBlockState) {
         super(pType, pWorldPosition, pBlockState);
         this.containerOpenersCounter = Suppliers.memoize(() -> new ResourceStorageOpenersCounter(Objects.requireNonNull(this.getUniqueId())));
-        this.wrapperHandler = LazyOptional.of(() -> new ItemHandlerWrapper(this::getExternalHandler, 27));
+        this.wrapperHandler = LazyOptional.of(() -> new ItemHandlerWrapper(this::getStorageItemHandler, 27));
     }
 
     @NotNull
@@ -89,29 +88,23 @@ public class ItemResourceStorageBlockEntity extends ResourceStorageBlockEntity {
         }
     }
 
-    private Optional<IItemHandler> getHandlerOpt() {
-        return this.getResourceStorageStorage()
-                .resolve()
-                .flatMap(storage -> storage.getCapability(this.getUniqueId(), CapabilityItemHandler.ITEM_HANDLER_CAPABILITY)
-                        .resolve()
-                );
+    protected void refreshStorageItemHandler(LazyOptional<IItemHandler> lazyOptional) {
+        wrapperHandler.invalidate();
+        wrapperHandler = LazyOptional.of(() -> new ItemHandlerWrapper(this::getStorageItemHandler, 27));
     }
 
     public IItemHandler getHandler() {
         return this.wrapperHandler.orElseThrow(() -> new IllegalStateException("Found No Wrapper"));
     }
 
-    private LazyOptional<IItemHandler> getExternalHandler() {
-        if (this.externalHandler == null) {
-            if (this.getResourceGroups() == null || this.getResourceGroups().isEmpty()) {
-                this.externalHandler = LazyOptional.empty();
-            } else {
-                this.externalHandler = this.getHandlerOpt()
-                        .map(handler -> LazyOptional.of(() -> handler))
+    private LazyOptional<IItemHandler> getStorageItemHandler() {
+        LazyOptional<IItemHandler> handlerLazyOptional = this.getResourceStorageStorage()
+                        .map(storageStorage -> storageStorage.getResourceStorage(this.getUniqueId())
+                                .getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY)
+                        )
                         .orElse(LazyOptional.empty());
-            }
-        }
-        return this.externalHandler;
+        handlerLazyOptional.addListener(this::refreshStorageItemHandler);
+        return handlerLazyOptional;
     }
 
     public void remove() {

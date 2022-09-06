@@ -125,7 +125,6 @@ public class ItemResourceStorageBlockEntity extends ResourceStorageBlockEntity {
         for (int i = 0; i < pInventory.getSlots(); ++i) {
             Containers.dropItemStack(pLevel, pX, pY, pZ, pInventory.getStackInSlot(i));
         }
-
     }
 
     public boolean onConfirmed(UUID id, ResourceGroup resourceGroup, Choice<ItemStack> choice, UUID owner) {

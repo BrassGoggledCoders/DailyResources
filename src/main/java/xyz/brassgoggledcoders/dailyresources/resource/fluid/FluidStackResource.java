@@ -8,6 +8,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraftforge.fluids.FluidAttributes;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +29,7 @@ public class FluidStackResource implements Resource<FluidStack> {
             Codec.either(TagKey.hashedCodec(Registry.FLUID_REGISTRY), ForgeRegistries.FLUIDS.getCodec())
                     .fieldOf("fluid")
                     .forGetter(FluidStackResource::getFluid),
-            Codec.INT.optionalFieldOf("count", 1)
+            Codec.INT.optionalFieldOf("amount", FluidAttributes.BUCKET_VOLUME)
                     .forGetter(FluidStackResource::getAmount),
             CompoundTag.CODEC.optionalFieldOf("nbt")
                     .forGetter(fluidStackResource -> Optional.ofNullable(fluidStackResource.getNbt()))

@@ -14,7 +14,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 public abstract class ResourceStorage implements ICapabilityProvider {
-    public static Supplier<Codec<ResourceStorage>> CODEC = Suppliers.memoize(() -> DailyResourcesResources.REGISTRY.get()
+    public static Supplier<Codec<ResourceStorage>> STORAGE_CODEC = Suppliers.memoize(() -> DailyResourcesResources.REGISTRY.get()
             .getCodec()
             .dispatch(ResourceStorage::getResourceType, ResourceType::getStorageCodec)
     );

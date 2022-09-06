@@ -40,7 +40,7 @@ public abstract class ResourceStorage implements ICapabilityProvider {
     public abstract void trigger(ResourceStorageSelection<?> resourceStorageSelection);
 
     public boolean addSelection(ResourceStorageSelection<?> resourceSelection) {
-        if (this.getSelection(resourceSelection.id()) != null) {
+        if (this.hasSelection(resourceSelection.id())) {
             return false;
         } else {
             this.selections.put(resourceSelection.id(), resourceSelection);

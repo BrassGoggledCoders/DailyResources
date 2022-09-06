@@ -11,6 +11,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import xyz.brassgoggledcoders.dailyresources.blockentity.ItemResourceStorageBlockEntity;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesBlocks;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesContainers;
@@ -70,7 +72,7 @@ public enum ResourceScreenType {
         }
 
         @Override
-        public List<Tab<ResourceScreenType>> getTabs(Block block, List<Pair<UUID, ResourceGroup>> groups) {
+        public List<Tab<ResourceScreenType>> getTabs(Block block, @NotNull List<Pair<UUID, ResourceGroup>> groups) {
             return Arrays.stream(ResourceScreenType.values())
                     .map(type -> type.getTab(block, groups))
                     .collect(Collectors.toList());
@@ -110,7 +112,7 @@ public enum ResourceScreenType {
         }
 
         @Override
-        public List<Tab<ResourceScreenType>> getTabs(Block block, List<Pair<UUID, ResourceGroup>> choices) {
+        public List<Tab<ResourceScreenType>> getTabs(Block block, @NotNull List<Pair<UUID, ResourceGroup>> choices) {
             if (choices.isEmpty()) {
                 return Collections.emptyList();
             } else {
@@ -133,5 +135,5 @@ public enum ResourceScreenType {
 
     public abstract Tab<ResourceScreenType> getTab(Block block, List<Pair<UUID, ResourceGroup>> choices);
 
-    public abstract List<Tab<ResourceScreenType>> getTabs(Block block, List<Pair<UUID, ResourceGroup>> choices);
+    public abstract List<Tab<ResourceScreenType>> getTabs(Block block, @NotNull List<Pair<UUID, ResourceGroup>> choices);
 }

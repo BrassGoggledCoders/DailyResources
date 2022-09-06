@@ -1,5 +1,7 @@
 package xyz.brassgoggledcoders.dailyresources.util;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
@@ -18,12 +20,17 @@ public class CachedValue<T> implements Supplier<T> {
     }
 
     @Override
+    @NotNull
     public T get() {
         long time = this.getTime.getAsLong();
-        if (time > this.lastTime + maxTime) {
+        if (this.value == null || time > this.lastTime + maxTime) {
             this.value = this.supplier.get();
             this.lastTime = time;
         }
         return this.value;
+    }
+
+    public void clear() {
+        this.value = null;
     }
 }

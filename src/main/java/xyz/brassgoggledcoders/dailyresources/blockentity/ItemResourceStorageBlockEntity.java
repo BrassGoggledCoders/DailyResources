@@ -43,6 +43,7 @@ import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorageStorage;
 import xyz.brassgoggledcoders.dailyresources.codec.Codecs;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesTriggers;
 import xyz.brassgoggledcoders.dailyresources.menu.BasicMenuProvider;
+import xyz.brassgoggledcoders.dailyresources.menu.ResourceSelectorMenu;
 import xyz.brassgoggledcoders.dailyresources.resource.Choice;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceGroup;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceStorageSelection;
@@ -255,12 +256,18 @@ public class ItemResourceStorageBlockEntity extends BlockEntity implements Namea
 
     }
 
+    public void clearCache() {
+        this.cachedGroups.clear();
+    }
+
     public boolean onConfirmed(UUID id, ResourceGroup resourceGroup, Choice<ItemStack> choice, UUID owner) {
         Optional<ResourceLocation> resourceGroupId = DailyResources.RESOURCE_GROUP_MANAGER.getId(resourceGroup);
         if (this.externalHandler != null) {
             this.externalHandler.invalidate();
             this.externalHandler = null;
         }
+
+        this.clearCache();
 
         return resourceGroupId.isPresent() && this.getResourceStorageStorage()
                 .map(resourceStorageStorage -> {
@@ -388,7 +395,10 @@ public class ItemResourceStorageBlockEntity extends BlockEntity implements Namea
     public void openMenu(Player pPlayer, @Nullable ResourceScreenType resourceScreenType) {
         this.startOpen(pPlayer);
         if (pPlayer instanceof ServerPlayer serverPlayer) {
-            List<Pair<UUID, ResourceGroup>> choices = this.getGroupsForChoices();
+            if (pPlayer.containerMenu instanceof ResourceSelectorMenu<?> menu) {
+                menu.confirmChoices(pPlayer);
+            }
+            List<Pair<UUID, ResourceGroup>> choices = this.getCachedGroupsForChoices();
             if (resourceScreenType == null) {
                 resourceScreenType = choices.isEmpty() ? ResourceScreenType.ITEM_STORAGE : ResourceScreenType.ITEM_SELECTOR;
             }

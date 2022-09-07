@@ -3,10 +3,8 @@ package xyz.brassgoggledcoders.dailyresources.blockentity;
 import com.google.common.base.Suppliers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.Containers;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
@@ -104,26 +102,6 @@ public class ItemResourceStorageBlockEntity extends ResourceStorageBlockEntity<I
                 .orElse(LazyOptional.empty());
         handlerLazyOptional.addListener(this::refreshStorageItemHandler);
         return handlerLazyOptional;
-    }
-
-    public void remove() {
-        this.getResourceStorageStorage()
-                .ifPresent(resourceStorageStorage -> {
-                    ResourceStorage resourceStorage = resourceStorageStorage.deleteResourceStorage(this.getUniqueId());
-                    if (resourceStorage != null) {
-                        resourceStorage.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY)
-                                .ifPresent(inventory -> {
-                                    BlockPos pos = this.getBlockPos();
-                                    dropContents(this.getLevel(), pos.getX(), pos.getY(), pos.getZ(), inventory);
-                                });
-                    }
-                });
-    }
-
-    private static void dropContents(Level pLevel, double pX, double pY, double pZ, IItemHandler pInventory) {
-        for (int i = 0; i < pInventory.getSlots(); ++i) {
-            Containers.dropItemStack(pLevel, pX, pY, pZ, pInventory.getStackInSlot(i));
-        }
     }
 
     @Override

@@ -65,8 +65,7 @@ public class ResourceBarrelBlock extends Block implements EntityBlock {
     @ParametersAreNonnullByDefault
     public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pIsMoving) {
         if (!pState.is(pNewState.getBlock())) {
-            if (pLevel.getBlockEntity(pPos) instanceof ItemResourceStorageBlockEntity resourceStorageBlockEntity) {
-                resourceStorageBlockEntity.remove();
+            if (pLevel.getBlockEntity(pPos) instanceof ResourceStorageBlockEntity<?>) {
                 pLevel.updateNeighbourForOutputSignal(pPos, this);
             }
 
@@ -97,7 +96,7 @@ public class ResourceBarrelBlock extends Block implements EntityBlock {
     public void setPlacedBy(Level pLevel, BlockPos pPos, BlockState pState, @Nullable LivingEntity pPlacer, ItemStack pStack) {
         if (pStack.hasCustomHoverName()) {
             BlockEntity blockentity = pLevel.getBlockEntity(pPos);
-            if (blockentity instanceof ResourceStorageBlockEntity resourceStorageBlockEntity) {
+            if (blockentity instanceof ResourceStorageBlockEntity<?> resourceStorageBlockEntity) {
                 resourceStorageBlockEntity.setCustomName(pStack.getHoverName());
             }
         }

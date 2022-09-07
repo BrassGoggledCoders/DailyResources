@@ -1,11 +1,18 @@
 package xyz.brassgoggledcoders.dailyresources.content;
 
+import com.tterrag.registrate.providers.loot.RegistrateBlockLootTables;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.storage.loot.LootPool;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.functions.CopyNbtFunction;
+import net.minecraft.world.level.storage.loot.providers.nbt.ContextNbtProvider;
 import net.minecraftforge.client.model.generators.ModelFile;
 import xyz.brassgoggledcoders.dailyresources.DailyResources;
 import xyz.brassgoggledcoders.dailyresources.block.ResourceBarrelBlock;
@@ -52,6 +59,7 @@ public class DailyResourcesBlocks {
                     }
                 });
             })
+            .loot(DailyResourcesBlocks::dropSelfWithInfo)
             .item()
             .build()
             .register();
@@ -70,6 +78,7 @@ public class DailyResourcesBlocks {
             .properties(properties -> properties.strength(5.5F)
                     .sound(SoundType.METAL)
             )
+            .loot(DailyResourcesBlocks::dropSelfWithInfo)
             .addLayer(() -> RenderType::cutout)
             .tag(BlockTags.MINEABLE_WITH_PICKAXE)
             .blockstate((context, provider) -> provider.horizontalBlock(
@@ -98,5 +107,19 @@ public class DailyResourcesBlocks {
 
     public static void setup() {
 
+    }
+
+    private static <T extends Block> void dropSelfWithInfo(RegistrateBlockLootTables lootTables, T block) {
+        lootTables.add(block, LootTable.lootTable()
+                .withPool(LootPool.lootPool()
+                        .name("drop")
+                        .add(LootItem.lootTableItem(block)
+                                .apply(CopyNbtFunction.copyData(ContextNbtProvider.BLOCK_ENTITY)
+                                        .copy("UniqueId", "BlockEntityTag.UniqueId")
+                                        .copy("ResourceGroups", "BlockEntityTag.ResourceGroups")
+                                )
+                        )
+                )
+        );
     }
 }

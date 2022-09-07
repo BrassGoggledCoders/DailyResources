@@ -3,11 +3,11 @@ package xyz.brassgoggledcoders.dailyresources.screen.fluid;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.InventoryMenu;
@@ -22,11 +22,15 @@ import xyz.brassgoggledcoders.dailyresources.screen.ResourceScreenType;
 import xyz.brassgoggledcoders.dailyresources.screen.TabRendering;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 public class FluidResourceStorageScreen extends AbstractContainerScreen<FluidResourceStorageMenu> {
     private static final ResourceLocation BG_LOCATION = DailyResources.rl("textures/screen/fluid_storage.png");
+
     public FluidResourceStorageScreen(FluidResourceStorageMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
     }
@@ -63,9 +67,7 @@ public class FluidResourceStorageScreen extends AbstractContainerScreen<FluidRes
                     TextureAtlasSprite flowingSprite = Minecraft.getInstance()
                             .getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
                             .apply(flowing);
-                    Minecraft.getInstance()
-                            .getTextureManager()
-                            .bindForSetup(InventoryMenu.BLOCK_ATLAS);
+                    RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
 
                     Color color = new Color(fluidStack.getFluid()
                             .getAttributes()
@@ -84,7 +86,7 @@ public class FluidResourceStorageScreen extends AbstractContainerScreen<FluidRes
                     RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
                 }
             }
-            
+
             RenderSystem.setShaderTexture(0, BG_LOCATION);
             this.blit(pPoseStack, x, y, 176, 0, 16, 52);
         }
@@ -104,6 +106,28 @@ public class FluidResourceStorageScreen extends AbstractContainerScreen<FluidRes
     protected void renderTooltip(@NotNull PoseStack pPoseStack, int pX, int pY) {
         super.renderTooltip(pPoseStack, pX, pY);
         TabRendering.renderTooltips(this.topPos, this.leftPos, pX, pY, this.menu.getTabs(), pPoseStack, this);
+
+        for (int i = 0; i < this.menu.getFluidHandler().getTanks(); i++) {
+            int x = leftPos + 26 + (i * 36);
+            int y = topPos + 18;
+            if (pX > x && pX < x + 18 && pY > y && pY < y + 54) {
+                FluidStack fluidStack = this.menu.getFluidHandler().getFluidInTank(i);
+                if (!fluidStack.isEmpty()) {
+                    List<Component> components = new ArrayList<>();
+                    components.add(fluidStack.getDisplayName());
+                    components.add(new TextComponent(fluidStack.getAmount() + "mb"));
+                    renderTooltip(
+                            pPoseStack,
+                            components,
+                            Optional.empty(),
+                            pX,
+                            pY,
+                            this.getMinecraft().font
+                    );
+                }
+
+            }
+        }
     }
 
     @Override

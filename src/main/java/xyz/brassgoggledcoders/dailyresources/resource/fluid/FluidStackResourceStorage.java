@@ -5,6 +5,9 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Direction;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorage;
@@ -18,6 +21,7 @@ public class FluidStackResourceStorage extends ResourceStorage {
     ).apply(instance, FluidStackResourceStorage::new));
 
     private final FluidStackResourceFluidHandler fluidHandler;
+    private final LazyOptional<IFluidHandler> lazyOptional = LazyOptional.of(this::getFluidHandler);
 
     public FluidStackResourceStorage(FluidStackResourceFluidHandler fluidHandler) {
         this.fluidHandler = fluidHandler;
@@ -30,18 +34,19 @@ public class FluidStackResourceStorage extends ResourceStorage {
 
     @Override
     public void invalidateCapabilities() {
-
+        this.lazyOptional.invalidate();
     }
 
     @Override
     public void trigger(ResourceStorageSelection<?> resourceStorageSelection) {
-
+        resourceStorageSelection.getChoice(DailyResourcesResources.FLUIDSTACK.get())
+                .ifPresent(fluidStack -> this.fluidHandler.fill(fluidStack.copy(), FluidAction.EXECUTE));
     }
 
     @NotNull
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        return LazyOptional.empty();
+        return CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.orEmpty(cap, this.lazyOptional);
     }
 
     public FluidStackResourceFluidHandler getFluidHandler() {

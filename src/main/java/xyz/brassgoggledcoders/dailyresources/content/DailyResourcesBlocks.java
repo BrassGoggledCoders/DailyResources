@@ -63,6 +63,7 @@ public class DailyResourcesBlocks {
             .properties(properties -> properties.strength(5.5F)
                     .sound(SoundType.METAL)
             )
+            .addLayer(() -> RenderType::cutout)
             .tag(BlockTags.MINEABLE_WITH_PICKAXE)
             .blockstate((context, provider) -> provider.simpleBlock(
                     context.get(),

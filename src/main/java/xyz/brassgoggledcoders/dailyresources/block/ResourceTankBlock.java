@@ -65,7 +65,7 @@ public class ResourceTankBlock extends Block implements EntityBlock {
     @ParametersAreNonnullByDefault
     public void setPlacedBy(Level pLevel, BlockPos pPos, BlockState pState, @Nullable LivingEntity pPlacer, ItemStack pStack) {
         if (pStack.hasCustomHoverName()) {
-            if (pLevel.getBlockEntity(pPos) instanceof ResourceStorageBlockEntity resourceStorageBlockEntity) {
+            if (pLevel.getBlockEntity(pPos) instanceof ResourceStorageBlockEntity<?> resourceStorageBlockEntity) {
                 resourceStorageBlockEntity.setCustomName(pStack.getHoverName());
             }
         }

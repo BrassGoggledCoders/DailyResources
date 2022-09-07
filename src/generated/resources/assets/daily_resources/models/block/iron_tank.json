@@ -1,8 +1,12 @@
 {
-  "parent": "daily_resources:block/tank",
-  "textures": {
-    "tank_bottom": "daily_resources:block/tank_bottom",
-    "tank_side": "daily_resources:block/tank_side",
-    "tank_top": "daily_resources:block/tank_top"
+  "loader": "daily_resources:trigger",
+  "parent": "minecraft:block/block",
+  "model": {
+    "parent": "daily_resources:block/tank",
+    "textures": {
+      "tank_bottom": "daily_resources:block/tank_bottom",
+      "tank_side": "daily_resources:block/tank_side",
+      "tank_top": "daily_resources:block/tank_top"
+    }
   }
 }

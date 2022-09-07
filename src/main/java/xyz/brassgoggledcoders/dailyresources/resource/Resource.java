@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public interface Resource<T> {
-    Supplier<Codec<Resource<?>>> CODEC = Suppliers.memoize(() -> new OptionalTypeKeyDispatchCodec<ResourceType<?>, Resource<?>>(
+    Supplier<Codec<Resource<?>>> RESOURCE_CODEC = Suppliers.memoize(() -> new OptionalTypeKeyDispatchCodec<ResourceType<?>, Resource<?>>(
             DailyResourcesResources.ITEMSTACK.getId().toString(),
             "type",
             DailyResourcesResources.REGISTRY.get().getCodec(),

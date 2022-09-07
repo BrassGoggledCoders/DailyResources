@@ -9,17 +9,18 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
-import xyz.brassgoggledcoders.dailyresources.menu.ResourceStorageMenu;
+import xyz.brassgoggledcoders.dailyresources.menu.ItemResourceStorageMenu;
 import xyz.brassgoggledcoders.dailyresources.network.NetworkHandler;
 
 import java.util.Objects;
+import java.util.function.Predicate;
 
-public class ResourceStorageScreen extends AbstractContainerScreen<ResourceStorageMenu> {
+public class ItemResourceStorageScreen extends AbstractContainerScreen<ItemResourceStorageMenu> {
     private static final ResourceLocation CONTAINER_BACKGROUND = new ResourceLocation("textures/gui/container/generic_54.png");
 
     private final int containerRows;
 
-    public ResourceStorageScreen(ResourceStorageMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
+    public ItemResourceStorageScreen(ItemResourceStorageMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
         this.passEvents = false;
         this.containerRows = pMenu.getItemHandler().getSlots() / 9;
@@ -30,9 +31,9 @@ public class ResourceStorageScreen extends AbstractContainerScreen<ResourceStora
     @Override
     public void render(@NotNull PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         this.renderBackground(pPoseStack);
-        TabRendering.renderTabs(this.leftPos, this.topPos, pPoseStack, this.menu.getTabs(), false, ResourceScreenType.ITEM_STORAGE, this);
+        TabRendering.renderTabs(this.leftPos, this.topPos, pPoseStack, this.menu.getTabs(), false, Predicate.not(ResourceScreenType::isSelector), this);
         super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
-        TabRendering.renderTabs(this.leftPos, this.topPos, pPoseStack, this.menu.getTabs(), true, ResourceScreenType.ITEM_STORAGE, this);
+        TabRendering.renderTabs(this.leftPos, this.topPos, pPoseStack, this.menu.getTabs(), true, Predicate.not(ResourceScreenType::isSelector), this);
         this.renderTooltip(pPoseStack, pMouseX, pMouseY);
     }
 

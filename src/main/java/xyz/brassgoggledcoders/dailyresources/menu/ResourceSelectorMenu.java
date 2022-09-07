@@ -7,8 +7,10 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.fluids.FluidStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import xyz.brassgoggledcoders.dailyresources.blockentity.ResourceStorageBlockEntity;
 import xyz.brassgoggledcoders.dailyresources.codec.Codecs;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesBlocks;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesResources;
@@ -94,15 +96,25 @@ public class ResourceSelectorMenu<T> extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(@NotNull Player pPlayer) {
-        return stillValid(levelAccess, pPlayer, DailyResourcesBlocks.BARREL.get());
+        return stillValid(levelAccess, pPlayer, DailyResourcesBlocks.BARREL.get()) || stillValid(levelAccess, pPlayer, DailyResourcesBlocks.TANK.get());
     }
 
     @Override
     public boolean clickMenuButton(@NotNull Player pPlayer, int pId) {
         if (pId == -100) {
-            this.levelAccess.execute((level, blockPos) -> DailyResourcesBlocks.STORAGE_BLOCK_ENTITY.get(level, blockPos)
-                    .ifPresent(storage -> storage.openMenu(pPlayer, ResourceScreenType.ITEM_STORAGE))
-            );
+            this.levelAccess.execute((level, blockPos) -> {
+                if (level.getBlockEntity(blockPos) instanceof ResourceStorageBlockEntity<?> storage) {
+                    storage.openMenu(
+                            pPlayer,
+                            this.getTabs()
+                                    .stream()
+                                    .map(Tab::marker)
+                                    .filter(marker -> !marker.isSelector())
+                                    .findFirst()
+                                    .orElse(null)
+                    );
+                }
+            });
             return true;
         } else if (pId < 0) {
             int groupIndex = Math.abs(pId) - 1;
@@ -232,5 +244,11 @@ public class ResourceSelectorMenu<T> extends AbstractContainerMenu {
     public static ResourceSelectorMenu<ItemStack> createItem(MenuType<ResourceSelectorMenu<ItemStack>> menuType, int id,
                                                              Inventory inventory, @Nullable FriendlyByteBuf friendlyByteBuf) {
         return create(menuType, id, inventory, friendlyByteBuf, DailyResourcesResources.ITEMSTACK.get());
+    }
+
+    @NotNull
+    public static ResourceSelectorMenu<FluidStack> createFluid(MenuType<ResourceSelectorMenu<FluidStack>> menuType, int id,
+                                                               Inventory inventory, @Nullable FriendlyByteBuf friendlyByteBuf) {
+        return create(menuType, id, inventory, friendlyByteBuf, DailyResourcesResources.FLUIDSTACK.get());
     }
 }

@@ -1,0 +1,33 @@
+{
+  "trigger": "daily_resources:dawn",
+  "resources": [
+    {
+      "item": "#minecraft:planks",
+      "count": 64
+    },
+    {
+      "item": "minecraft:chest",
+      "count": 8
+    },
+    {
+      "item": "#minecraft:flowers",
+      "count": 32
+    },
+    {
+      "type": "daily_resources:fluidstack",
+      "amount": 8000,
+      "fluid": "#minecraft:water"
+    },
+    {
+      "type": "daily_resources:fluidstack",
+      "amount": 4000,
+      "fluid": "#minecraft:lava"
+    },
+    {
+      "type": "daily_resources:fluidstack",
+      "amount": 2000,
+      "fluid": "minecraft:water"
+    }
+  ],
+  "name": "Items and Fluids"
+}

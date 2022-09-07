@@ -23,7 +23,7 @@ public class ResourceStorageStorage {
     });
     public static Supplier<Codec<ResourceStorageStorage>> CODEC = Suppliers.memoize(() ->
             RecordCodecBuilder.create(instance -> instance.group(
-                    Codec.unboundedMap(Codecs.UNIQUE_ID, ResourceStorage.CODEC.get())
+                    Codec.unboundedMap(Codecs.UNIQUE_ID, ResourceStorage.STORAGE_CODEC.get())
                             .fieldOf("resourceStorages")
                             .forGetter(ResourceStorageStorage::getResourceStorages),
                     Codec.unboundedMap(Codecs.UNIQUE_ID, Codec.list(ResourceStorageSelection.CODEC.get()))

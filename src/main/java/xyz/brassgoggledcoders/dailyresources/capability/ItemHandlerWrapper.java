@@ -1,5 +1,6 @@
 package xyz.brassgoggledcoders.dailyresources.capability;
 
+import com.google.common.base.Suppliers;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
@@ -13,7 +14,7 @@ public class ItemHandlerWrapper implements IItemHandlerModifiable {
     private final int defaultSlots;
 
     public ItemHandlerWrapper(Supplier<LazyOptional<IItemHandler>> wrappedReceiver, int defaultSlots) {
-        this.wrappedReceiver = wrappedReceiver;
+        this.wrappedReceiver = Suppliers.memoize(wrappedReceiver::get);
         this.defaultSlots = defaultSlots;
     }
 

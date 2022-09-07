@@ -5,7 +5,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
@@ -17,10 +16,10 @@ public class TabRendering {
     private static final ResourceLocation COMPONENT_LOCATION = new ResourceLocation("textures/gui/container/creative_inventory/tabs.png");
 
     public static <T> void renderTabs(int leftPos, int topPos, PoseStack poseStack, List<Tab<T>> tabs, boolean active,
-                                      T activeMarker, Screen screen) {
+                                      Predicate<T> activeMarker, Screen screen) {
         for (int i = 0; i < tabs.size(); i++) {
             Tab<T> tab = tabs.get(i);
-            if ((tab.marker() == activeMarker) == active) {
+            if (activeMarker.test(tab.marker()) == active) {
                 renderTab(tab, i, active, leftPos, topPos, poseStack, screen);
             }
         }

@@ -22,15 +22,15 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public class ResourceStorageMenu extends AbstractContainerMenu {
+public class ItemResourceStorageMenu extends AbstractContainerMenu {
     private final UUID uniqueId;
     private final Consumer<Player> closeHandler;
     private final IItemHandler itemHandler;
     private final List<Tab<ResourceScreenType>> tabs;
     private final ContainerLevelAccess levelAccess;
 
-    public ResourceStorageMenu(@Nullable MenuType<?> pMenuType, int pContainerId, Inventory inventory, IItemHandler storageInventory, UUID uniqueId,
-                               ContainerLevelAccess levelAccess, Consumer<Player> closeHandler, List<Tab<ResourceScreenType>> tabs) {
+    public ItemResourceStorageMenu(@Nullable MenuType<?> pMenuType, int pContainerId, Inventory inventory, IItemHandler storageInventory, UUID uniqueId,
+                                   ContainerLevelAccess levelAccess, Consumer<Player> closeHandler, List<Tab<ResourceScreenType>> tabs) {
         super(pMenuType, pContainerId);
         this.uniqueId = uniqueId;
         this.itemHandler = storageInventory;
@@ -93,9 +93,9 @@ public class ResourceStorageMenu extends AbstractContainerMenu {
     }
 
     @NotNull
-    public static ResourceStorageMenu create(MenuType<ResourceStorageMenu> menuType, int id, Inventory inventory,
-                                             @Nullable FriendlyByteBuf friendlyByteBuf) {
-        return new ResourceStorageMenu(
+    public static ItemResourceStorageMenu create(MenuType<ItemResourceStorageMenu> menuType, int id, Inventory inventory,
+                                                 @Nullable FriendlyByteBuf friendlyByteBuf) {
+        return new ItemResourceStorageMenu(
                 menuType,
                 id,
                 inventory,

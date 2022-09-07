@@ -22,7 +22,7 @@ import xyz.brassgoggledcoders.dailyresources.resource.ResourceGroup;
 
 import java.util.*;
 
-public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceSelectorMenu<T>> {
+public abstract class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceSelectorMenu<T>> {
     private static final ResourceLocation BG_LOCATION = DailyResources.rl("textures/screen/resource_selector.png");
 
     private float scrollOffs;
@@ -43,9 +43,9 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
 
     @Override
     public void render(@NotNull PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
-        TabRendering.renderTabs(this.leftPos, this.topPos, pPoseStack, this.menu.getTabs(), false, ResourceScreenType.ITEM_SELECTOR, this);
+        TabRendering.renderTabs(this.leftPos, this.topPos, pPoseStack, this.menu.getTabs(), false, ResourceScreenType::isSelector, this);
         super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
-        TabRendering.renderTabs(this.leftPos, this.topPos, pPoseStack, this.menu.getTabs(), true, ResourceScreenType.ITEM_SELECTOR, this);
+        TabRendering.renderTabs(this.leftPos, this.topPos, pPoseStack, this.menu.getTabs(), true, ResourceScreenType::isSelector, this);
         this.renderTooltip(pPoseStack, pMouseX, pMouseY);
     }
 
@@ -79,8 +79,10 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
         int i1 = this.topPos + 14;
         int j1 = this.startIndex + 15;
         this.renderButtons(pPoseStack, pX, pY, l, i1, j1);
-        this.renderItemStacks(l, i1, j1);
+        this.renderButtonIcons(l, i1, j1);
     }
+
+    protected abstract void renderIconTooltip(@NotNull PoseStack pPoseStack, T object, int mouseX, int mouseY);
 
     @Override
     protected void renderTooltip(@NotNull PoseStack pPoseStack, int mouseX, int mouseY) {
@@ -95,7 +97,7 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
             int j1 = i + i1 % 5 * 16;
             int k1 = j + i1 / 5 * 18 + 2;
             if (mouseX >= j1 && mouseX < j1 + 16 && mouseY >= k1 && mouseY < k1 + 18) {
-                this.renderTooltip(pPoseStack, list.get(l).asItemStack(), mouseX, mouseY);
+                this.renderIconTooltip(pPoseStack, list.get(l).getObject(), mouseX, mouseY);
             }
         }
 
@@ -154,7 +156,9 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
         }
     }
 
-    private void renderItemStacks(int pLeft, int pTop, int pIndexOffsetMax) {
+    protected abstract void renderButtonIcon(T object, int left, int top);
+
+    private void renderButtonIcons(int pLeft, int pTop, int pIndexOffsetMax) {
         List<Choice<T>> list = this.menu.getChoices();
 
         for (int i = this.startIndex; i < pIndexOffsetMax && i < this.menu.getNumChoices(); ++i) {
@@ -162,8 +166,8 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
             int k = pLeft + j % 5 * 16;
             int l = j / 5;
             int i1 = pTop + l * 18 + 2;
-            this.itemRenderer.renderAndDecorateItem(list.get(i).asItemStack(), k, i1);
-            this.itemRenderer.renderGuiItemDecorations(this.font, list.get(i).asItemStack(), k, i1, null);
+
+            renderButtonIcon(list.get(i).getObject(), k, i1);
         }
 
         int groupLeftPos = pLeft + 128;
@@ -176,11 +180,9 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
             List<Choice<T>> choices = this.menu.getChoices(groupIndex);
             int currentIcon = currentIcons[groupIndex];
             if (groupChoice != null) {
-                this.itemRenderer.renderAndDecorateItem(groupChoice.asItemStack(), leftPos, topPos);
-                this.itemRenderer.renderGuiItemDecorations(this.font, groupChoice.asItemStack(), leftPos, topPos, null);
+                renderButtonIcon(groupChoice.getObject(), leftPos, topPos);
             } else if (choices.size() > currentIcon) {
-                this.itemRenderer.renderAndDecorateItem(choices.get(currentIcon).asItemStack(), leftPos, topPos);
-                this.itemRenderer.renderGuiItemDecorations(this.font, choices.get(currentIcon).asItemStack(), leftPos, topPos, null);
+                renderButtonIcon(choices.get(currentIcon).getObject(), leftPos, topPos);
             }
         }
     }
@@ -237,7 +239,7 @@ public class ResourceSelectorScreen<T> extends AbstractContainerScreen<ResourceS
     }
 
     public boolean tabClick(ResourceScreenType type) {
-        if (type == ResourceScreenType.ITEM_STORAGE) {
+        if (!type.isSelector()) {
             if (this.menu.clickMenuButton(Objects.requireNonNull(Minecraft.getInstance().player), -100)) {
                 NetworkHandler.getInstance().sendMenuClick((this.menu).containerId, -100);
                 return true;

@@ -28,12 +28,12 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Function;
 
-public class ResourceBarrelBakedModel implements BakedModel {
+public class TriggerBakedModel implements BakedModel {
     private final ResourceLocation modelLocation;
     private final BakedModel model;
     private final Function<Material, TextureAtlasSprite> spriteGetter;
 
-    public ResourceBarrelBakedModel(ResourceLocation modelLocation, Function<Material, TextureAtlasSprite> spriteGetter, BakedModel model) {
+    public TriggerBakedModel(ResourceLocation modelLocation, Function<Material, TextureAtlasSprite> spriteGetter, BakedModel model) {
         this.modelLocation = modelLocation;
         this.model = model;
         this.spriteGetter = spriteGetter;

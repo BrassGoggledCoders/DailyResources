@@ -12,6 +12,7 @@ import xyz.brassgoggledcoders.dailyresources.block.ResourceBarrelBlock;
 import xyz.brassgoggledcoders.dailyresources.block.ResourceTankBlock;
 import xyz.brassgoggledcoders.dailyresources.blockentity.FluidResourceStorageBlockEntity;
 import xyz.brassgoggledcoders.dailyresources.blockentity.ItemResourceStorageBlockEntity;
+import xyz.brassgoggledcoders.dailyresources.model.barrel.TriggerCustomModelBuilder;
 
 public class DailyResourcesBlocks {
 
@@ -31,12 +32,18 @@ public class DailyResourcesBlocks {
                         provider.mcLoc("block/barrel_bottom"),
                         provider.mcLoc("block/barrel_top_open")
                 );
-                ModelFile closedBarrel = provider.models().cubeBottomTop(
-                        "block/barrel",
-                        provider.mcLoc("block/barrel_side"),
-                        provider.mcLoc("block/barrel_bottom"),
-                        provider.mcLoc("block/barrel_top")
-                );
+                ModelFile closedBarrel = provider.models()
+                        .withExistingParent("block/" + context.getName(), provider.mcLoc("block/block"))
+                        .customLoader(TriggerCustomModelBuilder::new)
+                        .withModel(provider.models().nested()
+                                .parent(provider.models()
+                                        .getExistingFile(provider.mcLoc("block/cube_bottom_top"))
+                                )
+                                .texture("side", provider.mcLoc("block/barrel_side"))
+                                .texture("bottom", provider.mcLoc("block/barrel_bottom"))
+                                .texture("top", provider.mcLoc("block/barrel_top"))
+                        )
+                        .end();
                 provider.directionalBlock(context.get(), blockState -> {
                     if (blockState.getValue(ResourceBarrelBlock.OPEN)) {
                         return openBarrel;
@@ -65,13 +72,20 @@ public class DailyResourcesBlocks {
             )
             .addLayer(() -> RenderType::cutout)
             .tag(BlockTags.MINEABLE_WITH_PICKAXE)
-            .blockstate((context, provider) -> provider.simpleBlock(
+            .blockstate((context, provider) -> provider.horizontalBlock(
                     context.get(),
                     provider.models()
-                            .withExistingParent(context.getName(), provider.modLoc("block/tank"))
-                            .texture("tank_bottom", provider.modLoc("block/tank_bottom"))
-                            .texture("tank_side", provider.modLoc("block/tank_side"))
-                            .texture("tank_top", provider.modLoc("block/tank_top"))
+                            .withExistingParent(context.getName(), provider.mcLoc("block/block"))
+                            .customLoader(TriggerCustomModelBuilder::new)
+                            .withModel(provider.models()
+                                    .nested()
+                                    .parent(provider.models().getExistingFile(provider.modLoc("block/tank")))
+                                    .texture("tank_bottom", provider.modLoc("block/tank_bottom"))
+                                    .texture("tank_side", provider.modLoc("block/tank_side"))
+                                    .texture("tank_top", provider.modLoc("block/tank_top"))
+                            )
+                            .end()
+
             ))
             .item()
             .build()

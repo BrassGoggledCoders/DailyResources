@@ -1,7 +1,19 @@
 {
   "variants": {
-    "": {
+    "facing=north": {
       "model": "daily_resources:block/iron_tank"
+    },
+    "facing=south": {
+      "model": "daily_resources:block/iron_tank",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "daily_resources:block/iron_tank",
+      "y": 270
+    },
+    "facing=east": {
+      "model": "daily_resources:block/iron_tank",
+      "y": 90
     }
   }
 }

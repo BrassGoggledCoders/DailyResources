@@ -17,17 +17,17 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 
-public class ResourceBarrelModel implements IModelGeometry<ResourceBarrelModel> {
+public class TriggerModel implements IModelGeometry<TriggerModel> {
     private final BlockModel blockModel;
 
-    public ResourceBarrelModel(BlockModel blockModel) {
+    public TriggerModel(BlockModel blockModel) {
         this.blockModel = blockModel;
     }
 
     @Override
     public BakedModel bake(IModelConfiguration owner, ModelBakery bakery, Function<Material, TextureAtlasSprite> spriteGetter,
                            ModelState modelTransform, ItemOverrides overrides, ResourceLocation modelLocation) {
-        return new ResourceBarrelBakedModel(
+        return new TriggerBakedModel(
                 modelLocation,
                 spriteGetter,
                 blockModel.bake(

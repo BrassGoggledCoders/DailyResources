@@ -1,5 +1,4 @@
 {
-  "loader": "daily_resources:trigger",
   "parent": "minecraft:block/block",
   "model": {
     "parent": "minecraft:block/cube_bottom_top",
@@ -8,5 +7,6 @@
       "bottom": "minecraft:block/barrel_bottom",
       "top": "minecraft:block/barrel_top"
     }
-  }
+  },
+  "loader": "daily_resources:trigger"
 }

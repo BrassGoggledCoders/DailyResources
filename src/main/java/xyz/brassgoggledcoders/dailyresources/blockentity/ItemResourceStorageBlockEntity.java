@@ -1,11 +1,8 @@
 package xyz.brassgoggledcoders.dailyresources.blockentity;
 
 import com.google.common.base.Suppliers;
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -17,30 +14,22 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import xyz.brassgoggledcoders.dailyresources.DailyResources;
 import xyz.brassgoggledcoders.dailyresources.capability.ItemHandlerWrapper;
 import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorage;
 import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorageStorage;
-import xyz.brassgoggledcoders.dailyresources.codec.Codecs;
-import xyz.brassgoggledcoders.dailyresources.menu.BasicMenuProvider;
-import xyz.brassgoggledcoders.dailyresources.menu.ResourceSelectorMenu;
 import xyz.brassgoggledcoders.dailyresources.resource.Choice;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceGroup;
-import xyz.brassgoggledcoders.dailyresources.resource.ResourceStorageSelection;
 import xyz.brassgoggledcoders.dailyresources.resource.item.ItemStackResourceItemHandler;
 import xyz.brassgoggledcoders.dailyresources.resource.item.ItemStackResourceStorage;
 import xyz.brassgoggledcoders.dailyresources.screen.ResourceScreenType;
 
-import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-public class ItemResourceStorageBlockEntity extends ResourceStorageBlockEntity {
+public class ItemResourceStorageBlockEntity extends ResourceStorageBlockEntity<ItemStack> {
     private final Supplier<ResourceStorageOpenersCounter> containerOpenersCounter;
     private LazyOptional<IItemHandler> externalHandler;
     private LazyOptional<IItemHandler> wrapperHandler;
@@ -88,6 +77,11 @@ public class ItemResourceStorageBlockEntity extends ResourceStorageBlockEntity {
         }
     }
 
+    @Override
+    protected ResourceScreenType getDefaultScreenType(boolean hasChoices) {
+        return hasChoices ? ResourceScreenType.ITEM_SELECTOR : ResourceScreenType.ITEM_STORAGE;
+    }
+
     protected void refreshStorageItemHandler(LazyOptional<IItemHandler> lazyOptional) {
         wrapperHandler.invalidate();
         wrapperHandler = LazyOptional.of(() -> new ItemHandlerWrapper(this::getStorageItemHandler, 27));
@@ -99,10 +93,15 @@ public class ItemResourceStorageBlockEntity extends ResourceStorageBlockEntity {
 
     private LazyOptional<IItemHandler> getStorageItemHandler() {
         LazyOptional<IItemHandler> handlerLazyOptional = this.getResourceStorageStorage()
-                        .map(storageStorage -> storageStorage.getResourceStorage(this.getUniqueId())
-                                .getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY)
-                        )
-                        .orElse(LazyOptional.empty());
+                .<LazyOptional<IItemHandler>>map(storageStorage -> {
+                    ResourceStorage resourceStorage = storageStorage.getResourceStorage(this.getUniqueId());
+                    if (resourceStorage != null) {
+                        return resourceStorage.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY);
+                    } else {
+                        return LazyOptional.empty();
+                    }
+                })
+                .orElse(LazyOptional.empty());
         handlerLazyOptional.addListener(this::refreshStorageItemHandler);
         return handlerLazyOptional;
     }
@@ -127,30 +126,9 @@ public class ItemResourceStorageBlockEntity extends ResourceStorageBlockEntity {
         }
     }
 
-    public boolean onConfirmed(UUID id, ResourceGroup resourceGroup, Choice<ItemStack> choice, UUID owner) {
-        Optional<ResourceLocation> resourceGroupId = DailyResources.RESOURCE_GROUP_MANAGER.getId(resourceGroup);
-        if (this.externalHandler != null) {
-            this.externalHandler.invalidate();
-            this.externalHandler = null;
-        }
-
-        this.clearCache();
-
-        return resourceGroupId.isPresent() && this.getResourceStorageStorage()
-                .map(resourceStorageStorage -> {
-                    ResourceStorage resourceStorage = resourceStorageStorage.getOrCreateResourceStorage(
-                            this.getUniqueId(),
-                            () -> new ItemStackResourceStorage(ItemStackResourceItemHandler.create(27))
-                    );
-
-                    return resourceStorage.addSelection(new ResourceStorageSelection<>(
-                            id,
-                            resourceGroupId.get(),
-                            choice,
-                            owner
-                    ));
-                })
-                .orElse(false);
+    @Override
+    protected ResourceStorage createDefaultResourceStorage() {
+        return new ItemStackResourceStorage(ItemStackResourceItemHandler.create(27));
     }
 
     @Override
@@ -164,49 +142,16 @@ public class ItemResourceStorageBlockEntity extends ResourceStorageBlockEntity {
                 .orElse(0);
     }
 
+    @Override
     public void openMenu(Player pPlayer, @Nullable ResourceScreenType resourceScreenType) {
         this.startOpen(pPlayer);
-        if (pPlayer instanceof ServerPlayer serverPlayer) {
-            if (pPlayer.containerMenu instanceof ResourceSelectorMenu<?> menu) {
-                menu.confirmChoices(pPlayer);
-            }
-            List<Pair<UUID, ResourceGroup>> choices = this.getCachedGroupsForChoices();
-            if (resourceScreenType == null) {
-                resourceScreenType = choices.isEmpty() ? ResourceScreenType.ITEM_STORAGE : ResourceScreenType.ITEM_SELECTOR;
-            }
-            ResourceScreenType finalResourceScreenType = resourceScreenType;
-            NetworkHooks.openGui(
-                    serverPlayer,
-                    new BasicMenuProvider<>(
-                            resourceScreenType.getDisplayName(),
-                            resourceScreenType.getMenuFunction(this)
-                    ),
-                    friendlyByteBuf -> {
-                        if (finalResourceScreenType == ResourceScreenType.ITEM_SELECTOR) {
-                            friendlyByteBuf.writeCollection(
-                                    choices,
-                                    (listByteBuf, pair) -> {
-                                        listByteBuf.writeUUID(pair.getFirst());
-                                        listByteBuf.writeWithCodec(ResourceGroup.CODEC.get(), pair.getSecond());
-                                    }
-                            );
-                        }
-                        friendlyByteBuf.writeCollection(
-                                finalResourceScreenType.getTabs(
-                                        this.getBlockState().getBlock(),
-                                        this.getCachedGroupsForChoices()
-                                ),
-                                (listByteBuf, tab) -> {
-                                    listByteBuf.writeItem(tab.icon());
-                                    listByteBuf.writeCollection(
-                                            tab.components(),
-                                            (subListByteBuffer, component) -> subListByteBuffer.writeWithCodec(Codecs.COMPONENT, component)
-                                    );
-                                    listByteBuf.writeEnum(tab.marker());
-                                }
-                        );
-                    }
-            );
-        }
+        super.openMenu(pPlayer, resourceScreenType);
+    }
+
+    @Override
+    public boolean onConfirmed(UUID id, ResourceGroup resourceGroup, Choice<ItemStack> choice, UUID owner) {
+        this.wrapperHandler.invalidate();
+        this.wrapperHandler = LazyOptional.of(() -> new ItemHandlerWrapper(this::getStorageItemHandler, 27));
+        return super.onConfirmed(id, resourceGroup, choice, owner);
     }
 }

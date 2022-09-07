@@ -2,21 +2,16 @@ package xyz.brassgoggledcoders.dailyresources.content;
 
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.BlockEntry;
-import com.tterrag.registrate.util.entry.MenuEntry;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.material.Material;
 import net.minecraftforge.client.model.generators.ModelFile;
 import xyz.brassgoggledcoders.dailyresources.DailyResources;
 import xyz.brassgoggledcoders.dailyresources.block.ResourceBarrelBlock;
 import xyz.brassgoggledcoders.dailyresources.block.ResourceTankBlock;
+import xyz.brassgoggledcoders.dailyresources.blockentity.FluidResourceStorageBlockEntity;
 import xyz.brassgoggledcoders.dailyresources.blockentity.ItemResourceStorageBlockEntity;
-import xyz.brassgoggledcoders.dailyresources.menu.ResourceSelectorMenu;
-import xyz.brassgoggledcoders.dailyresources.menu.ResourceStorageMenu;
-import xyz.brassgoggledcoders.dailyresources.screen.ResourceSelectorScreen;
-import xyz.brassgoggledcoders.dailyresources.screen.ResourceStorageScreen;
 
 public class DailyResourcesBlocks {
 
@@ -79,6 +74,11 @@ public class DailyResourcesBlocks {
             ))
             .item()
             .build()
+            .register();
+
+    public static final BlockEntityEntry<FluidResourceStorageBlockEntity> FLUID_STORAGE_BLOCK_ENTITY = DailyResources.getRegistrate()
+            .object("fluid_storage")
+            .blockEntity(FluidResourceStorageBlockEntity::new)
             .register();
 
     public static void setup() {

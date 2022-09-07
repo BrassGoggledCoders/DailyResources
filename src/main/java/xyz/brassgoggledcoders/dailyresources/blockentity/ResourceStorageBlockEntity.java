@@ -12,8 +12,11 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Nameable;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -23,19 +26,27 @@ import net.minecraftforge.client.model.data.IModelData;
 import net.minecraftforge.client.model.data.ModelDataMap;
 import net.minecraftforge.client.model.data.ModelProperty;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.brassgoggledcoders.dailyresources.DailyResources;
+import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorage;
 import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorageStorage;
+import xyz.brassgoggledcoders.dailyresources.codec.Codecs;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesTriggers;
+import xyz.brassgoggledcoders.dailyresources.menu.BasicMenuProvider;
+import xyz.brassgoggledcoders.dailyresources.menu.ResourceSelectorMenu;
+import xyz.brassgoggledcoders.dailyresources.resource.Choice;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceGroup;
+import xyz.brassgoggledcoders.dailyresources.resource.ResourceStorageSelection;
+import xyz.brassgoggledcoders.dailyresources.screen.ResourceScreenType;
 import xyz.brassgoggledcoders.dailyresources.trigger.Trigger;
 import xyz.brassgoggledcoders.dailyresources.util.CachedValue;
 
 import java.util.*;
 import java.util.function.Predicate;
 
-public class ResourceStorageBlockEntity extends BlockEntity implements Nameable {
+public abstract class ResourceStorageBlockEntity<T> extends BlockEntity implements Nameable {
     public final static ModelProperty<Trigger> TRIGGER_PROPERTY = new ModelProperty<>();
 
     private UUID uniqueId;
@@ -253,4 +264,76 @@ public class ResourceStorageBlockEntity extends BlockEntity implements Nameable 
     public void clearCache() {
         this.cachedGroups.clear();
     }
+
+    protected abstract ResourceScreenType getDefaultScreenType(boolean hasChoices);
+
+    public void openMenu(Player pPlayer, @Nullable ResourceScreenType resourceScreenType) {
+        if (pPlayer instanceof ServerPlayer serverPlayer) {
+            if (pPlayer.containerMenu instanceof ResourceSelectorMenu<?> menu) {
+                menu.confirmChoices(pPlayer);
+            }
+            List<Pair<UUID, ResourceGroup>> choices = this.getCachedGroupsForChoices();
+            if (resourceScreenType == null) {
+                resourceScreenType = this.getDefaultScreenType(!choices.isEmpty());
+            }
+            ResourceScreenType finalResourceScreenType = resourceScreenType;
+            NetworkHooks.openGui(
+                    serverPlayer,
+                    new BasicMenuProvider<>(
+                            resourceScreenType.getDisplayName(),
+                            resourceScreenType.getMenuFunction(this)
+                    ),
+                    friendlyByteBuf -> {
+                        if (finalResourceScreenType.isSelector()) {
+                            friendlyByteBuf.writeCollection(
+                                    choices,
+                                    (listByteBuf, pair) -> {
+                                        listByteBuf.writeUUID(pair.getFirst());
+                                        listByteBuf.writeWithCodec(ResourceGroup.CODEC.get(), pair.getSecond());
+                                    }
+                            );
+                        }
+                        friendlyByteBuf.writeCollection(
+                                finalResourceScreenType.getTabs(
+                                        this.getBlockState().getBlock(),
+                                        this.getCachedGroupsForChoices()
+                                ),
+                                (listByteBuf, tab) -> {
+                                    listByteBuf.writeItem(tab.icon());
+                                    listByteBuf.writeCollection(
+                                            tab.components(),
+                                            (subListByteBuffer, component) -> subListByteBuffer.writeWithCodec(Codecs.COMPONENT, component)
+                                    );
+                                    listByteBuf.writeEnum(tab.marker());
+                                }
+                        );
+                    }
+            );
+        }
+    }
+
+    public boolean onConfirmed(UUID id, ResourceGroup resourceGroup, Choice<T> choice, UUID owner) {
+        Optional<ResourceLocation> resourceGroupId = DailyResources.RESOURCE_GROUP_MANAGER.getId(resourceGroup);
+
+        this.clearCache();
+
+        return resourceGroupId.isPresent() && this.getResourceStorageStorage()
+                .map(resourceStorageStorage -> {
+                    ResourceStorage resourceStorage = resourceStorageStorage.getOrCreateResourceStorage(
+                            this.getUniqueId(),
+                            this::createDefaultResourceStorage
+                    );
+
+                    return resourceStorage.addSelection(new ResourceStorageSelection<>(
+                            id,
+                            resourceGroupId.get(),
+                            choice,
+                            owner
+                    ));
+                })
+                .orElse(false);
+    }
+
+    protected abstract ResourceStorage createDefaultResourceStorage();
+
 }

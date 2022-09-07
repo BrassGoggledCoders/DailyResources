@@ -43,9 +43,9 @@ public abstract class ResourceSelectorScreen<T> extends AbstractContainerScreen<
 
     @Override
     public void render(@NotNull PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
-        TabRendering.renderTabs(this.leftPos, this.topPos, pPoseStack, this.menu.getTabs(), false, ResourceScreenType.ITEM_SELECTOR, this);
+        TabRendering.renderTabs(this.leftPos, this.topPos, pPoseStack, this.menu.getTabs(), false, ResourceScreenType::isSelector, this);
         super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
-        TabRendering.renderTabs(this.leftPos, this.topPos, pPoseStack, this.menu.getTabs(), true, ResourceScreenType.ITEM_SELECTOR, this);
+        TabRendering.renderTabs(this.leftPos, this.topPos, pPoseStack, this.menu.getTabs(), true, ResourceScreenType::isSelector, this);
         this.renderTooltip(pPoseStack, pMouseX, pMouseY);
     }
 
@@ -239,7 +239,7 @@ public abstract class ResourceSelectorScreen<T> extends AbstractContainerScreen<
     }
 
     public boolean tabClick(ResourceScreenType type) {
-        if (type == ResourceScreenType.ITEM_STORAGE) {
+        if (!type.isSelector()) {
             if (this.menu.clickMenuButton(Objects.requireNonNull(Minecraft.getInstance().player), -100)) {
                 NetworkHandler.getInstance().sendMenuClick((this.menu).containerId, -100);
                 return true;

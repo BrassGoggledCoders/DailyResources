@@ -4,15 +4,15 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraftforge.fluids.FluidAttributes;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 import org.jetbrains.annotations.NotNull;
+import xyz.brassgoggledcoders.dailyresources.capability.fluid.IFluidHandlerModifiable;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class FluidStackResourceFluidHandler implements IFluidHandler {
+public class FluidStackResourceFluidHandler implements IFluidHandlerModifiable {
 
     public static final Codec<FluidTank> TANK_CODEC = RecordCodecBuilder.create(instance -> instance.group(
             FluidStack.CODEC.fieldOf("fluid").forGetter(FluidTank::getFluid)
@@ -121,5 +121,12 @@ public class FluidStackResourceFluidHandler implements IFluidHandler {
 
     public List<FluidTank> getFluidTanks() {
         return fluidTanks;
+    }
+
+    @Override
+    public void setFluidInTank(int tank, @NotNull FluidStack stack) {
+        this.getFluidTanks()
+                .get(tank)
+                .setFluid(stack);
     }
 }

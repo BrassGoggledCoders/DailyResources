@@ -69,11 +69,18 @@ public class FluidStackResource implements Resource<FluidStack> {
 
     @Override
     public boolean contains(FluidStack object) {
-        return false;
+        return !object.isEmpty() && this.asChoices()
+                .stream()
+                .map(Choice::getObject)
+                .anyMatch(object::isFluidStackIdentical);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <U> Optional<Resource<U>> cast(ResourceType<U> resourceType) {
+        if (resourceType == this.getResourceType()) {
+            return Optional.of((Resource<U>) this);
+        }
         return Optional.empty();
     }
 
@@ -101,7 +108,9 @@ public class FluidStackResource implements Resource<FluidStack> {
                                 .getTag(tag)
                                 .stream(),
                         Stream::of
-                ).map(value -> new FluidStack(value, this.getAmount(), this.getNbt()))
+                )
+                .filter(value -> value.isSource(value.defaultFluidState()))
+                .map(value -> new FluidStack(value, this.getAmount(), this.getNbt()))
                 .map(fluidStack -> new Choice<>(this, fluidStack))
                 .toList();
     }

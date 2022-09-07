@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.entity.ContainerOpenersCounter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.jetbrains.annotations.NotNull;
-import xyz.brassgoggledcoders.dailyresources.menu.ResourceStorageMenu;
+import xyz.brassgoggledcoders.dailyresources.menu.ItemResourceStorageMenu;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.UUID;
@@ -50,7 +50,7 @@ public class ResourceStorageOpenersCounter extends ContainerOpenersCounter {
 
     @Override
     protected boolean isOwnContainer(@NotNull Player player) {
-        if (player.containerMenu instanceof ResourceStorageMenu menu) {
+        if (player.containerMenu instanceof ItemResourceStorageMenu menu) {
             return menu.getUniqueId() == this.uniqueId;
         }
 

@@ -25,6 +25,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.brassgoggledcoders.dailyresources.blockentity.ItemResourceStorageBlockEntity;
+import xyz.brassgoggledcoders.dailyresources.blockentity.ResourceStorageBlockEntity;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesBlocks;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -96,7 +97,7 @@ public class ResourceBarrelBlock extends Block implements EntityBlock {
     public void setPlacedBy(Level pLevel, BlockPos pPos, BlockState pState, @Nullable LivingEntity pPlacer, ItemStack pStack) {
         if (pStack.hasCustomHoverName()) {
             BlockEntity blockentity = pLevel.getBlockEntity(pPos);
-            if (blockentity instanceof ItemResourceStorageBlockEntity resourceStorageBlockEntity) {
+            if (blockentity instanceof ResourceStorageBlockEntity resourceStorageBlockEntity) {
                 resourceStorageBlockEntity.setCustomName(pStack.getHoverName());
             }
         }

@@ -48,7 +48,9 @@ public class ForgeEventHandler {
                         ResourceStorageStorage.CAP,
                         ResourceStorageStorage.CODEC.get(),
                         ResourceStorageStorage::new,
-                        ResourceStorageStorage::invalidate
+                        ResourceStorageStorage::invalidate,
+                        ResourceStorageStorage::setMinecraftServer,
+                        serverLevel.getServer()
                 );
                 event.addListener(provider::invalidate);
                 event.addCapability(DailyResources.rl("resource_storage_storage"), provider);

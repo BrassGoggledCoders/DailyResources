@@ -16,7 +16,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -37,6 +36,7 @@ import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesTriggers;
 import xyz.brassgoggledcoders.dailyresources.menu.BasicMenuProvider;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceSelectorMenu;
 import xyz.brassgoggledcoders.dailyresources.resource.Choice;
+import xyz.brassgoggledcoders.dailyresources.resource.ListenerType;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceGroup;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceStorageSelection;
 import xyz.brassgoggledcoders.dailyresources.screen.ResourceScreenType;
@@ -257,10 +257,6 @@ public abstract class ResourceStorageBlockEntity<T> extends BlockEntity implemen
                 .build();
     }
 
-    public Map<UUID, ResourceLocation> getResourceGroups() {
-        return this.resourceGroups;
-    }
-
     public void clearCache() {
         this.cachedGroups.clear();
     }
@@ -323,6 +319,9 @@ public abstract class ResourceStorageBlockEntity<T> extends BlockEntity implemen
                             this.getUniqueId(),
                             this::createDefaultResourceStorage
                     );
+                    if (this.getLevel() != null) {
+                        resourceStorage.addListener(ListenerType.FULL, this.getLevel(), this.getBlockPos());
+                    }
 
                     return resourceStorage.addSelection(new ResourceStorageSelection<>(
                             id,
@@ -336,4 +335,22 @@ public abstract class ResourceStorageBlockEntity<T> extends BlockEntity implemen
 
     protected abstract ResourceStorage createDefaultResourceStorage();
 
+    public void addFullListener() {
+        this.getResourceStorageStorage()
+                .ifPresent(resourceStorageStorage -> resourceStorageStorage.attemptAddListener(
+                        this.getUniqueId(),
+                        ListenerType.FULL,
+                        this.getLevel(),
+                        this.getBlockPos()
+                ));
+    }
+
+    public void removeListeners() {
+        this.getResourceStorageStorage()
+                .ifPresent(resourceStorageStorage -> resourceStorageStorage.attemptRemoveListener(
+                        this.getUniqueId(),
+                        this.getLevel(),
+                        this.getBlockPos()
+                ));
+    }
 }

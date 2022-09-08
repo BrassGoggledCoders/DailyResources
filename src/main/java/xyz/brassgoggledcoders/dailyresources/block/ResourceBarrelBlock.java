@@ -1,7 +1,10 @@
 package xyz.brassgoggledcoders.dailyresources.block;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -34,11 +37,13 @@ import java.util.Random;
 public class ResourceBarrelBlock extends Block implements EntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     public static final BooleanProperty OPEN = BlockStateProperties.OPEN;
+    public static final BooleanProperty FULL = DailyResourcesBlockStateProperties.FULL;
 
     public ResourceBarrelBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.defaultBlockState()
                 .setValue(OPEN, false)
+                .setValue(FULL, false)
         );
     }
 
@@ -65,7 +70,8 @@ public class ResourceBarrelBlock extends Block implements EntityBlock {
     @ParametersAreNonnullByDefault
     public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pIsMoving) {
         if (!pState.is(pNewState.getBlock())) {
-            if (pLevel.getBlockEntity(pPos) instanceof ResourceStorageBlockEntity<?>) {
+            if (pLevel.getBlockEntity(pPos) instanceof ResourceStorageBlockEntity<?> resourceStorageBlockEntity) {
+                resourceStorageBlockEntity.removeListeners();
                 pLevel.updateNeighbourForOutputSignal(pPos, this);
             }
 
@@ -81,6 +87,9 @@ public class ResourceBarrelBlock extends Block implements EntityBlock {
         if (blockentity instanceof ItemResourceStorageBlockEntity resourceStorageBlockEntity) {
             resourceStorageBlockEntity.recheckOpen();
         }
+        if (pState.getValue(FULL)) {
+            pLevel.setBlock(pPos, pState.setValue(FULL, false), Block.UPDATE_ALL);
+        }
     }
 
 
@@ -94,13 +103,12 @@ public class ResourceBarrelBlock extends Block implements EntityBlock {
     @Override
     @ParametersAreNonnullByDefault
     public void setPlacedBy(Level pLevel, BlockPos pPos, BlockState pState, @Nullable LivingEntity pPlacer, ItemStack pStack) {
-        if (pStack.hasCustomHoverName()) {
-            BlockEntity blockentity = pLevel.getBlockEntity(pPos);
-            if (blockentity instanceof ResourceStorageBlockEntity<?> resourceStorageBlockEntity) {
+        if (pLevel.getBlockEntity(pPos) instanceof ResourceStorageBlockEntity<?> resourceStorageBlockEntity) {
+            resourceStorageBlockEntity.addFullListener();
+            if (pStack.hasCustomHoverName()) {
                 resourceStorageBlockEntity.setCustomName(pStack.getHoverName());
             }
         }
-
     }
 
     @Override
@@ -135,7 +143,7 @@ public class ResourceBarrelBlock extends Block implements EntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
-        pBuilder.add(FACING, OPEN);
+        pBuilder.add(FACING, OPEN, FULL);
     }
 
     @Override
@@ -145,5 +153,25 @@ public class ResourceBarrelBlock extends Block implements EntityBlock {
                 .setValue(FACING, pContext.getNearestLookingDirection()
                         .getOpposite()
                 );
+    }
+
+    @Override
+    @ParametersAreNonnullByDefault
+    public void animateTick(BlockState pState, Level pLevel, BlockPos pPos, Random pRandom) {
+        super.animateTick(pState, pLevel, pPos, pRandom);
+        if (pState.getValue(FULL)) {
+            if (pRandom.nextInt(10) == 0) {
+                pLevel.playLocalSound((double) pPos.getX() + 0.5D, (double) pPos.getY() + 0.5D,
+                        (double) pPos.getZ() + 0.5D, SoundEvents.CAMPFIRE_CRACKLE, SoundSource.BLOCKS,
+                        0.5F + pRandom.nextFloat(), pRandom.nextFloat() * 0.7F + 0.6F, false);
+            }
+
+            if (pRandom.nextInt(5) == 0) {
+                for (int i = 0; i < pRandom.nextInt(1) + 1; ++i) {
+                    pLevel.addParticle(ParticleTypes.LAVA, (double) pPos.getX() + 0.5D, (double) pPos.getY() + 1.125D,
+                            (double) pPos.getZ() + 0.5D, pRandom.nextFloat() / 2.0F, 5.0E-5D, pRandom.nextFloat() / 2.0F);
+                }
+            }
+        }
     }
 }

@@ -45,9 +45,10 @@ public class ItemStackResourceStorage extends ResourceStorage {
     }
 
     @Override
-    public void trigger(ResourceStorageSelection<?> storageSelection) {
-        storageSelection.getChoice(DailyResourcesResources.ITEMSTACK.get())
-                .ifPresent(itemStack -> ItemHandlerHelper.insertItemStacked(this.getItemHandler(), itemStack.copy(), false));
+    public boolean trigger(ResourceStorageSelection<?> storageSelection) {
+        return storageSelection.getChoice(DailyResourcesResources.ITEMSTACK.get())
+                .map(itemStack -> !ItemHandlerHelper.insertItemStacked(this.getItemHandler(), itemStack.copy(), false).isEmpty())
+                .orElse(false);
     }
 
     @NotNull

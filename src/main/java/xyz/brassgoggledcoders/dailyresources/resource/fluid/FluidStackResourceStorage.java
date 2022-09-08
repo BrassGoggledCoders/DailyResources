@@ -38,9 +38,10 @@ public class FluidStackResourceStorage extends ResourceStorage {
     }
 
     @Override
-    public void trigger(ResourceStorageSelection<?> resourceStorageSelection) {
-        resourceStorageSelection.getChoice(DailyResourcesResources.FLUIDSTACK.get())
-                .ifPresent(fluidStack -> this.fluidHandler.fill(fluidStack.copy(), FluidAction.EXECUTE));
+    public boolean trigger(ResourceStorageSelection<?> resourceStorageSelection) {
+        return resourceStorageSelection.getChoice(DailyResourcesResources.FLUIDSTACK.get())
+                .map(fluidStack -> this.fluidHandler.fill(fluidStack.copy(), FluidAction.EXECUTE) != fluidStack.getAmount())
+                .orElse(false);
     }
 
     @NotNull

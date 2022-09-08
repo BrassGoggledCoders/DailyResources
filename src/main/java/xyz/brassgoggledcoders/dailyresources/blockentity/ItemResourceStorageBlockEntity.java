@@ -91,14 +91,10 @@ public class ItemResourceStorageBlockEntity extends ResourceStorageBlockEntity<I
 
     private LazyOptional<IItemHandler> getStorageItemHandler() {
         LazyOptional<IItemHandler> handlerLazyOptional = this.getResourceStorageStorage()
-                .<LazyOptional<IItemHandler>>map(storageStorage -> {
-                    ResourceStorage resourceStorage = storageStorage.getResourceStorage(this.getUniqueId());
-                    if (resourceStorage != null) {
-                        return resourceStorage.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY);
-                    } else {
-                        return LazyOptional.empty();
-                    }
-                })
+                .map(storageStorage -> storageStorage.getCapability(
+                        this.getUniqueId(),
+                        CapabilityItemHandler.ITEM_HANDLER_CAPABILITY
+                ))
                 .orElse(LazyOptional.empty());
         handlerLazyOptional.addListener(this::refreshStorageItemHandler);
         return handlerLazyOptional;

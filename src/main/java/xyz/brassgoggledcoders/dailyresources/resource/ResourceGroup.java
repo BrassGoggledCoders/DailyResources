@@ -4,7 +4,6 @@ import com.google.common.base.Suppliers;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.network.chat.Component;
-import org.apache.commons.compress.utils.Lists;
 import xyz.brassgoggledcoders.dailyresources.codec.Codecs;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesTriggers;
 import xyz.brassgoggledcoders.dailyresources.trigger.Trigger;
@@ -25,7 +24,7 @@ public record ResourceGroup(
     ).apply(instance, ResourceGroup::new)));
 
     public <T> List<Resource<T>> getResourceFor(ResourceType<T> resourceType) {
-        List<Resource<T>> matchingResource = Lists.newArrayList();
+        List<Resource<T>> matchingResource = new ArrayList<>();
         for (Resource<?> resource : resources) {
             resource.cast(resourceType)
                     .ifPresent(matchingResource::add);

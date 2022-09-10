@@ -52,7 +52,7 @@ public class ResourceTankBlock extends Block implements EntityBlock {
         if (pLevel.isClientSide) {
             return InteractionResult.SUCCESS;
         } else {
-            if (pLevel.getBlockEntity(pPos) instanceof FluidResourceStorageBlockEntity resourceStorageBlockEntity) {
+            if (pLevel.getBlockEntity(pPos) instanceof ResourceStorageBlockEntity<?> resourceStorageBlockEntity) {
                 resourceStorageBlockEntity.openMenu(pPlayer, null);
             }
 

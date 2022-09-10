@@ -32,13 +32,11 @@ public class FluidResourceStorageBlockEntity extends ResourceStorageBlockEntity<
     public static final ModelProperty<FluidStack[]> TANK_FLUIDS_PROPERTY = new ModelProperty<>();
 
     private LazyOptional<IFluidHandler> wrapper;
-    private FluidStack[] tankFluids;
+    private FluidStack[] tankFluids = null;
 
     public FluidResourceStorageBlockEntity(BlockEntityType<?> pType, BlockPos pWorldPosition, BlockState pBlockState) {
         super(pType, pWorldPosition, pBlockState);
         this.wrapper = LazyOptional.of(() -> new FluidHandlerWrapper(this::getStorageFluidHandler, 4, 16 * FluidAttributes.BUCKET_VOLUME));
-        this.tankFluids = new FluidStack[4];
-        Arrays.fill(this.tankFluids, FluidStack.EMPTY);
     }
 
     @Override
@@ -53,12 +51,12 @@ public class FluidResourceStorageBlockEntity extends ResourceStorageBlockEntity<
 
     @Override
     protected boolean checkChangeSize() {
-        if (this.tankFluids.length != this.getHandler().getTanks()) {
+        if (this.tankFluids == null || this.tankFluids.length != this.getHandler().getTanks()) {
             this.tankFluids = new FluidStack[this.getHandler().getTanks()];
             Arrays.fill(this.tankFluids, FluidStack.EMPTY);
             for (int i = 0; i < this.tankFluids.length; i++) {
                 FluidStack fluidStack = this.getHandler().getFluidInTank(i).copy();
-                fluidStack.setAmount((int) Math.ceil(fluidStack.getAmount() / (float) this.getHandler().getTankCapacity(i)));
+                fluidStack.setAmount((int) Math.ceil((fluidStack.getAmount() / (float) this.getHandler().getTankCapacity(i)) * 100));
                 this.tankFluids[i] = fluidStack;
             }
             return true;
@@ -81,7 +79,6 @@ public class FluidResourceStorageBlockEntity extends ResourceStorageBlockEntity<
             return different;
         }
     }
-
 
     public int calculateComparator() {
         return this.getHandler().getSignal();
@@ -123,6 +120,9 @@ public class FluidResourceStorageBlockEntity extends ResourceStorageBlockEntity<
     public CompoundTag getUpdateTag() {
         CompoundTag compoundTag = super.getUpdateTag();
         ListTag tanks = new ListTag();
+        if (this.tankFluids == null) {
+            checkChangeSize();
+        }
         for (FluidStack tankFluid : this.tankFluids) {
             tanks.add(tankFluid.writeToNBT(new CompoundTag()));
         }

@@ -1,5 +1,6 @@
 package xyz.brassgoggledcoders.dailyresources.content;
 
+import com.mojang.math.Vector3f;
 import com.tterrag.registrate.providers.loot.RegistrateBlockLootTables;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.BlockEntry;
@@ -20,6 +21,8 @@ import xyz.brassgoggledcoders.dailyresources.block.ResourceTankBlock;
 import xyz.brassgoggledcoders.dailyresources.blockentity.FluidResourceStorageBlockEntity;
 import xyz.brassgoggledcoders.dailyresources.blockentity.ItemResourceStorageBlockEntity;
 import xyz.brassgoggledcoders.dailyresources.model.barrel.TriggerCustomModelBuilder;
+import xyz.brassgoggledcoders.dailyresources.model.fluidtop.FluidModelInfo;
+import xyz.brassgoggledcoders.dailyresources.model.fluidtop.FluidTopCustomModelBuilder;
 
 public class DailyResourcesBlocks {
 
@@ -88,10 +91,31 @@ public class DailyResourcesBlocks {
                             .customLoader(TriggerCustomModelBuilder::new)
                             .withModel(provider.models()
                                     .nested()
-                                    .parent(provider.models().getExistingFile(provider.modLoc("block/tank")))
-                                    .texture("tank_bottom", provider.modLoc("block/tank_bottom"))
-                                    .texture("tank_side", provider.modLoc("block/tank_side"))
-                                    .texture("tank_top", provider.modLoc("block/tank_top"))
+                                    .customLoader(FluidTopCustomModelBuilder::new)
+                                    .withModel(provider.models()
+                                            .nested()
+                                            .parent(provider.models().getExistingFile(provider.modLoc("block/tank")))
+                                            .texture("tank_bottom", provider.modLoc("block/tank_bottom"))
+                                            .texture("tank_side", provider.modLoc("block/tank_side"))
+                                            .texture("tank_top", provider.modLoc("block/tank_top"))
+                                    )
+                                    .withFluidInfo(new FluidModelInfo(
+                                            new Vector3f(2, 14, 2),
+                                            new Vector3f(7, 2.01F, 7)
+                                    ))
+                                    .withFluidInfo(new FluidModelInfo(
+                                            new Vector3f(9, 14, 2),
+                                            new Vector3f(14, 2.01F, 7)
+                                    ))
+                                    .withFluidInfo(new FluidModelInfo(
+                                            new Vector3f(9, 14, 9),
+                                            new Vector3f(14, 2.01F, 14)
+                                    ))
+                                    .withFluidInfo(new FluidModelInfo(
+                                            new Vector3f(2, 14, 9),
+                                            new Vector3f(7, 2.01F, 14)
+                                    ))
+                                    .end()
                             )
                             .end()
 

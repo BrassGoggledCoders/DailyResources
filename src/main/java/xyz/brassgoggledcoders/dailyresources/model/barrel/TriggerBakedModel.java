@@ -16,7 +16,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraftforge.client.model.SimpleModelState;
 import net.minecraftforge.client.model.data.EmptyModelData;
 import net.minecraftforge.client.model.data.IModelData;
-import net.minecraftforge.client.model.data.ModelDataMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.brassgoggledcoders.dailyresources.blockentity.ResourceStorageBlockEntity;
@@ -48,7 +47,7 @@ public class TriggerBakedModel implements BakedModel {
     @Override
     @NotNull
     public List<BakedQuad> getQuads(@Nullable BlockState pState, @Nullable Direction pSide, @NotNull Random pRand, @NotNull IModelData modelData) {
-        List<BakedQuad> bakedQuads = new ArrayList<>(model.getQuads(pState, pSide, pRand, EmptyModelData.INSTANCE));
+        List<BakedQuad> bakedQuads = new ArrayList<>(model.getQuads(pState, pSide, pRand, modelData));
         Trigger trigger = modelData.getData(ResourceStorageBlockEntity.TRIGGER_PROPERTY);
         if (trigger != null) {
             Direction facing;
@@ -125,13 +124,11 @@ public class TriggerBakedModel implements BakedModel {
     @NotNull
     @Override
     public IModelData getModelData(@NotNull BlockAndTintGetter level, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull IModelData modelData) {
-        if (level.getBlockEntity(pos) instanceof ResourceStorageBlockEntity resourceStorageBlockEntity) {
-            return new ModelDataMap.Builder()
-                    .withInitial(ResourceStorageBlockEntity.TRIGGER_PROPERTY, resourceStorageBlockEntity.getTrigger())
-                    .build();
-        } else {
-            return EmptyModelData.INSTANCE;
+        modelData = model.getModelData(level, pos, state, modelData);
+        if (level.getBlockEntity(pos) instanceof ResourceStorageBlockEntity<?> resourceStorageBlockEntity) {
+            modelData.setData(ResourceStorageBlockEntity.TRIGGER_PROPERTY, resourceStorageBlockEntity.getTrigger());
         }
+        return modelData;
     }
 
     @Override

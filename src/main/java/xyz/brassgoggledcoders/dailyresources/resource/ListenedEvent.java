@@ -1,6 +1,6 @@
 package xyz.brassgoggledcoders.dailyresources.resource;
 
-public enum ListenerType {
+public enum ListenedEvent {
     FULL,
     UPDATE
 }

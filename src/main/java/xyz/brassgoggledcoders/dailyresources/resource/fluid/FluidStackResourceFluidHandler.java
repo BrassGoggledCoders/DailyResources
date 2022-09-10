@@ -129,4 +129,17 @@ public class FluidStackResourceFluidHandler implements IFluidHandlerModifiable {
                 .get(tank)
                 .setFluid(stack);
     }
+
+    @Override
+    public int getSignal() {
+        int capacity = 0;
+        int filled = 0;
+
+        for (int i = 0; i < this.getTanks(); i++) {
+            capacity += this.getTankCapacity(i);
+            filled += this.getFluidInTank(i).getAmount();
+        }
+
+        return capacity > 0 ? filled / capacity : 0;
+    }
 }

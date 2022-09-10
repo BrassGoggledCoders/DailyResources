@@ -7,7 +7,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesResources;
-import xyz.brassgoggledcoders.dailyresources.resource.ListenerType;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceStorageSelection;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceType;
 
@@ -21,11 +20,11 @@ public abstract class ResourceStorage implements ICapabilityProvider {
     );
 
     private final Map<UUID, ResourceStorageSelection<?>> selections;
-    private final EnumMap<ListenerType, Map<ResourceKey<Level>, List<BlockPos>>> listenerPos;
+    private final Map<ResourceKey<Level>, List<BlockPos>> listeners;
 
     public ResourceStorage() {
         this.selections = new HashMap<>();
-        this.listenerPos = new EnumMap<>(ListenerType.class);
+        this.listeners = new HashMap<>();
     }
 
     public Collection<ResourceStorageSelection<?>> getSelections() {
@@ -58,41 +57,33 @@ public abstract class ResourceStorage implements ICapabilityProvider {
         return this.selections.containsKey(uuid);
     }
 
-    public void addListener(ListenerType listenerType, Level level, BlockPos blockPos) {
-        List<BlockPos> positions = this.listenerPos.computeIfAbsent(listenerType, value -> new HashMap<>())
-                .computeIfAbsent(level.dimension(), value -> new ArrayList<>());
+    public void addListener(Level level, BlockPos blockPos) {
+        List<BlockPos> positions = this.listeners.computeIfAbsent(level.dimension(), dim -> new ArrayList<>());
 
         if (positions.stream().noneMatch(blockPos::equals)) {
             positions.add(blockPos);
         }
     }
 
-    public void addListeners(ListenerType listenerType, ResourceKey<Level> level, List<BlockPos> blockPos) {
-        this.listenerPos.computeIfAbsent(listenerType, value -> new HashMap<>())
-                .computeIfAbsent(level, value -> new ArrayList<>())
+    public void addListeners(ResourceKey<Level> level, List<BlockPos> blockPos) {
+        this.listeners.computeIfAbsent(level, value -> new ArrayList<>())
                 .addAll(blockPos);
     }
 
-    public Map<ResourceKey<Level>, List<BlockPos>> getListenersFor(ListenerType listenerType) {
-        return this.listenerPos.getOrDefault(listenerType, Collections.emptyMap());
-    }
-
-    public void removeListenerPos(Level level, BlockPos blockPos) {
-        for (Map<ResourceKey<Level>, List<BlockPos>> listeners : this.listenerPos.values()) {
-            List<BlockPos> currentLists = listeners.get(level.dimension());
-            if (currentLists != null) {
-                currentLists.removeIf(blockPos::equals);
-            }
-
-            if (currentLists != null && currentLists.isEmpty()) {
-                listeners.remove(level.dimension());
-            }
+    public void removeListener(Level level, BlockPos blockPos) {
+        List<BlockPos> currentLists = listeners.get(level.dimension());
+        if (currentLists != null) {
+            currentLists.removeIf(blockPos::equals);
         }
-        this.listenerPos.values()
-                .removeIf(Map::isEmpty);
+
+        if (currentLists != null && currentLists.isEmpty()) {
+            listeners.remove(level.dimension());
+        }
+        this.listeners.values()
+                .removeIf(List::isEmpty);
     }
 
-    public Map<ListenerType, Map<ResourceKey<Level>, List<BlockPos>>> getListeners() {
-        return this.listenerPos;
+    public Map<ResourceKey<Level>, List<BlockPos>> getListeners() {
+        return this.listeners;
     }
 }

@@ -100,7 +100,7 @@ public class ResourceBarrelBlock extends Block implements EntityBlock {
     @ParametersAreNonnullByDefault
     public void setPlacedBy(Level pLevel, BlockPos pPos, BlockState pState, @Nullable LivingEntity pPlacer, ItemStack pStack) {
         if (pLevel.getBlockEntity(pPos) instanceof ResourceStorageBlockEntity<?> resourceStorageBlockEntity) {
-            resourceStorageBlockEntity.addFullListener();
+            resourceStorageBlockEntity.addListener();
             if (pStack.hasCustomHoverName()) {
                 resourceStorageBlockEntity.setCustomName(pStack.getHoverName());
             }

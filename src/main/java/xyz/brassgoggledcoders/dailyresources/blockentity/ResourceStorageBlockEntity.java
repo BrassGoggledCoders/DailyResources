@@ -29,6 +29,7 @@ import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.brassgoggledcoders.dailyresources.DailyResources;
+import xyz.brassgoggledcoders.dailyresources.block.DailyResourcesBlockStateProperties;
 import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorage;
 import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorageStorage;
 import xyz.brassgoggledcoders.dailyresources.codec.Codecs;
@@ -36,7 +37,7 @@ import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesTriggers;
 import xyz.brassgoggledcoders.dailyresources.menu.BasicMenuProvider;
 import xyz.brassgoggledcoders.dailyresources.menu.ResourceSelectorMenu;
 import xyz.brassgoggledcoders.dailyresources.resource.Choice;
-import xyz.brassgoggledcoders.dailyresources.resource.ListenerType;
+import xyz.brassgoggledcoders.dailyresources.resource.ListenedEvent;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceGroup;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceStorageSelection;
 import xyz.brassgoggledcoders.dailyresources.screen.ResourceScreenType;
@@ -46,7 +47,7 @@ import xyz.brassgoggledcoders.dailyresources.util.CachedValue;
 import java.util.*;
 import java.util.function.Predicate;
 
-public abstract class ResourceStorageBlockEntity<T> extends BlockEntity implements Nameable {
+public abstract class ResourceStorageBlockEntity<T> extends BlockEntity implements Nameable, IResourceListener {
     public final static ModelProperty<Trigger> TRIGGER_PROPERTY = new ModelProperty<>();
 
     private UUID uniqueId;
@@ -320,7 +321,7 @@ public abstract class ResourceStorageBlockEntity<T> extends BlockEntity implemen
                             this::createDefaultResourceStorage
                     );
                     if (this.getLevel() != null) {
-                        resourceStorage.addListener(ListenerType.FULL, this.getLevel(), this.getBlockPos());
+                        resourceStorage.addListener(this.getLevel(), this.getBlockPos());
                     }
 
                     return resourceStorage.addSelection(new ResourceStorageSelection<>(
@@ -335,11 +336,10 @@ public abstract class ResourceStorageBlockEntity<T> extends BlockEntity implemen
 
     protected abstract ResourceStorage createDefaultResourceStorage();
 
-    public void addFullListener() {
+    public void addListener() {
         this.getResourceStorageStorage()
                 .ifPresent(resourceStorageStorage -> resourceStorageStorage.attemptAddListener(
                         this.getUniqueId(),
-                        ListenerType.FULL,
                         this.getLevel(),
                         this.getBlockPos()
                 ));
@@ -353,4 +353,32 @@ public abstract class ResourceStorageBlockEntity<T> extends BlockEntity implemen
                         this.getBlockPos()
                 ));
     }
+
+    @Override
+    public void onEvent(@NotNull ListenedEvent listenedEvent) {
+        if (this.getLevel() != null) {
+            if (listenedEvent == ListenedEvent.FULL) {
+                this.getLevel().scheduleTick(this.getBlockPos(), this.getBlockState().getBlock(), 200);
+                this.getLevel().setBlock(this.getBlockPos(), this.getBlockState().setValue(DailyResourcesBlockStateProperties.FULL, true), Block.UPDATE_ALL);
+            } else if (listenedEvent == ListenedEvent.UPDATE && checkChangeSize()) {
+                this.getLevel().updateNeighbourForOutputSignal(this.getBlockPos(), this.getBlockState().getBlock());
+                if (sendClientUpdate()) {
+                    this.getLevel().markAndNotifyBlock(
+                            this.getBlockPos(),
+                            this.getLevel().getChunkAt(this.getBlockPos()),
+                            this.getBlockState(),
+                            this.getBlockState(),
+                            Block.UPDATE_ALL,
+                            1
+                    );
+                }
+            }
+        }
+    }
+
+    protected boolean sendClientUpdate() {
+        return false;
+    }
+
+    protected abstract boolean checkChangeSize();
 }

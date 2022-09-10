@@ -31,6 +31,7 @@ public class ItemResourceStorageBlockEntity extends ResourceStorageBlockEntity<I
     private final Supplier<ResourceStorageOpenersCounter> containerOpenersCounter;
     private LazyOptional<IItemHandler> externalHandler;
     private LazyOptional<IItemHandler> wrapperHandler;
+    private int lastComparator;
 
     public ItemResourceStorageBlockEntity(BlockEntityType<?> pType, BlockPos pWorldPosition, BlockState pBlockState) {
         super(pType, pWorldPosition, pBlockState);
@@ -106,14 +107,21 @@ public class ItemResourceStorageBlockEntity extends ResourceStorageBlockEntity<I
     }
 
     @Override
+    protected boolean checkChangeSize() {
+        return this.lastComparator != this.wrapperHandler.map(ItemHandlerHelper::calcRedstoneFromInventory)
+                .orElse(0);
+    }
+
+    @Override
     public void invalidateCaps() {
         super.invalidateCaps();
         this.wrapperHandler.invalidate();
     }
 
     public int calculateComparator() {
-        return this.wrapperHandler.map(ItemHandlerHelper::calcRedstoneFromInventory)
+        this.lastComparator = this.wrapperHandler.map(ItemHandlerHelper::calcRedstoneFromInventory)
                 .orElse(0);
+        return this.lastComparator;
     }
 
     @Override

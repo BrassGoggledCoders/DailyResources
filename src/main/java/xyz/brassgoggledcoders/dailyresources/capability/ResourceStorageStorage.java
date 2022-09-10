@@ -11,16 +11,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.common.util.LazyOptional;
 import xyz.brassgoggledcoders.dailyresources.DailyResources;
-import xyz.brassgoggledcoders.dailyresources.block.DailyResourcesBlockStateProperties;
+import xyz.brassgoggledcoders.dailyresources.blockentity.IResourceListener;
 import xyz.brassgoggledcoders.dailyresources.codec.Codecs;
-import xyz.brassgoggledcoders.dailyresources.resource.ListenerType;
+import xyz.brassgoggledcoders.dailyresources.resource.ListenedEvent;
 import xyz.brassgoggledcoders.dailyresources.resource.ResourceStorageSelection;
 import xyz.brassgoggledcoders.dailyresources.trigger.Trigger;
 import xyz.brassgoggledcoders.dailyresources.trigger.TriggerInfo;
@@ -39,14 +37,11 @@ public class ResourceStorageStorage {
                     Codec.unboundedMap(Codecs.UNIQUE_ID, Codec.list(ResourceStorageSelection.CODEC.get()))
                             .fieldOf("resourceSelections")
                             .forGetter(ResourceStorageStorage::getSelections),
-                    Codec.optionalField("resourceListeners", Codec.unboundedMap(
+                    Codec.optionalField("resourceListener", Codec.unboundedMap(
                                     Codecs.UNIQUE_ID,
                                     Codec.unboundedMap(
-                                            Codecs.LISTENER_TYPE,
-                                            Codec.unboundedMap(
-                                                    ResourceKey.codec(Registry.DIMENSION_REGISTRY),
-                                                    BlockPos.CODEC.listOf()
-                                            )
+                                            ResourceKey.codec(Registry.DIMENSION_REGISTRY),
+                                            BlockPos.CODEC.listOf()
                                     )
                             ))
                             .forGetter(resourceStorageStorage -> Optional.of(resourceStorageStorage.getListeners()))
@@ -119,27 +114,26 @@ public class ResourceStorageStorage {
                         ResourceStorageSelection<?> selection = resourceStorage.getSelection(entry.selectionId());
                         if (selection != null) {
                             if (resourceStorage.trigger(selection)) {
-                                alertListener(ListenerType.FULL, resourceStorage);
+                                alertListener(ListenedEvent.UPDATE, resourceStorage);
+                                alertListener(ListenedEvent.FULL, resourceStorage);
+                            } else {
+                                alertListener(ListenedEvent.UPDATE, resourceStorage);
                             }
                         }
                     }
                 });
     }
 
-    private void alertListener(ListenerType listenerType, ResourceStorage resourceStorage) {
-        Map<ResourceKey<Level>, List<BlockPos>> listeners = resourceStorage.getListenersFor(listenerType);
+    private void alertListener(ListenedEvent listenedEvent, ResourceStorage resourceStorage) {
+        Map<ResourceKey<Level>, List<BlockPos>> listeners = resourceStorage.getListeners();
         if (!listeners.isEmpty() && minecraftServer != null) {
             for (Map.Entry<ResourceKey<Level>, List<BlockPos>> listenerEntry : listeners.entrySet()) {
                 ServerLevel level = minecraftServer.getLevel(listenerEntry.getKey());
                 if (level != null) {
                     for (BlockPos blockPos : listenerEntry.getValue()) {
                         if (level.isLoaded(blockPos)) {
-                            BlockState blockState = level.getBlockState(blockPos);
-                            if (blockState.hasProperty(DailyResourcesBlockStateProperties.FULL)) {
-                                if (!blockState.getValue(DailyResourcesBlockStateProperties.FULL)) {
-                                    level.setBlock(blockPos, blockState.setValue(DailyResourcesBlockStateProperties.FULL, true), Block.UPDATE_ALL);
-                                    level.scheduleTick(blockPos, blockState.getBlock(), 200);
-                                }
+                            if (level.getBlockEntity(blockPos) instanceof IResourceListener resourceListener) {
+                                resourceListener.onEvent(listenedEvent);
                             }
                         }
                     }
@@ -182,8 +176,8 @@ public class ResourceStorageStorage {
         return selections;
     }
 
-    private Map<UUID, Map<ListenerType, Map<ResourceKey<Level>, List<BlockPos>>>> getListeners() {
-        Map<UUID, Map<ListenerType, Map<ResourceKey<Level>, List<BlockPos>>>> storageListeners = new HashMap<>();
+    private Map<UUID, Map<ResourceKey<Level>, List<BlockPos>>> getListeners() {
+        Map<UUID, Map<ResourceKey<Level>, List<BlockPos>>> storageListeners = new HashMap<>();
         for (Map.Entry<UUID, ResourceStorage> resourceStorageEntry : this.resourceStorages.entrySet()) {
             storageListeners.put(resourceStorageEntry.getKey(), resourceStorageEntry.getValue().getListeners());
         }
@@ -194,10 +188,10 @@ public class ResourceStorageStorage {
         this.resourceStorages.values().forEach(ResourceStorage::invalidateCapabilities);
     }
 
-    public void attemptAddListener(UUID storageId, ListenerType listenerType, Level level, BlockPos blockPos) {
+    public void attemptAddListener(UUID storageId, Level level, BlockPos blockPos) {
         ResourceStorage resourceStorage = this.getResourceStorage(storageId);
         if (resourceStorage != null) {
-            resourceStorage.addListener(listenerType, level, blockPos);
+            resourceStorage.addListener(level, blockPos);
         }
     }
 
@@ -208,25 +202,24 @@ public class ResourceStorageStorage {
     public void attemptRemoveListener(UUID uniqueId, Level level, BlockPos blockPos) {
         ResourceStorage resourceStorage = this.getResourceStorage(uniqueId);
         if (resourceStorage != null) {
-            resourceStorage.removeListenerPos(level, blockPos);
+            resourceStorage.removeListener(level, blockPos);
         }
     }
 
     public static ResourceStorageStorage read(
             Map<UUID, ResourceStorage> storages,
             Map<UUID, List<ResourceStorageSelection<?>>> selections,
-            Map<UUID, Map<ListenerType, Map<ResourceKey<Level>, List<BlockPos>>>> allListeners
+            Map<UUID, Map<ResourceKey<Level>, List<BlockPos>>> allListeners
     ) {
         for (Map.Entry<UUID, ResourceStorage> entry : storages.entrySet()) {
             List<ResourceStorageSelection<?>> list = selections.get(entry.getKey());
             if (list != null) {
                 list.forEach(entry.getValue()::addSelection);
             }
-            Map<ListenerType, Map<ResourceKey<Level>, List<BlockPos>>> listeners = allListeners.get(entry.getKey());
+            Map<ResourceKey<Level>, List<BlockPos>> listeners = allListeners.get(entry.getKey());
             if (listeners != null) {
-                for (Map.Entry<ListenerType, Map<ResourceKey<Level>, List<BlockPos>>> listenerEntry : listeners.entrySet()) {
-                    listenerEntry.getValue()
-                            .forEach((key, positions) -> entry.getValue().addListeners(listenerEntry.getKey(), key, positions));
+                for (Map.Entry<ResourceKey<Level>, List<BlockPos>> listenerEntry : listeners.entrySet()) {
+                    entry.getValue().addListeners(listenerEntry.getKey(), listenerEntry.getValue());
                 }
             }
         }

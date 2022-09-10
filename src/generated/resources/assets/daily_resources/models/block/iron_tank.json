@@ -1,12 +1,65 @@
 {
   "parent": "minecraft:block/block",
   "model": {
-    "parent": "daily_resources:block/tank",
-    "textures": {
-      "tank_bottom": "daily_resources:block/tank_bottom",
-      "tank_side": "daily_resources:block/tank_side",
-      "tank_top": "daily_resources:block/tank_top"
-    }
+    "model": {
+      "parent": "daily_resources:block/tank",
+      "textures": {
+        "tank_bottom": "daily_resources:block/tank_bottom",
+        "tank_side": "daily_resources:block/tank_side",
+        "tank_top": "daily_resources:block/tank_top"
+      }
+    },
+    "fluidInfo": [
+      {
+        "from": [
+          2,
+          14,
+          2
+        ],
+        "to": [
+          7,
+          2.01,
+          7
+        ]
+      },
+      {
+        "from": [
+          9,
+          14,
+          2
+        ],
+        "to": [
+          14,
+          2.01,
+          7
+        ]
+      },
+      {
+        "from": [
+          9,
+          14,
+          9
+        ],
+        "to": [
+          14,
+          2.01,
+          14
+        ]
+      },
+      {
+        "from": [
+          2,
+          14,
+          9
+        ],
+        "to": [
+          7,
+          2.01,
+          14
+        ]
+      }
+    ],
+    "loader": "daily_resources:fluid_top"
   },
   "loader": "daily_resources:trigger"
 }

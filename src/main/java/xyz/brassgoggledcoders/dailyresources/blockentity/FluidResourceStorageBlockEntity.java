@@ -40,7 +40,7 @@ public class FluidResourceStorageBlockEntity extends ResourceStorageBlockEntity<
     }
 
     public int calculateComparator() {
-        return 0;
+        return this.getHandler().getSignal();
     }
 
     public IFluidHandlerModifiable getHandler() {

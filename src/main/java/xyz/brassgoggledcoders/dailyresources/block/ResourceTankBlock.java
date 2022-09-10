@@ -69,7 +69,6 @@ public class ResourceTankBlock extends Block implements EntityBlock {
                 resourceStorageBlockEntity.setCustomName(pStack.getHoverName());
             }
         }
-
     }
 
     @Override

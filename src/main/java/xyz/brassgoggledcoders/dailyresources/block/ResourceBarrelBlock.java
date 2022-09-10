@@ -1,7 +1,6 @@
 package xyz.brassgoggledcoders.dailyresources.block;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -14,10 +13,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.Mirror;
-import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -166,10 +162,9 @@ public class ResourceBarrelBlock extends Block implements EntityBlock {
                         0.5F + pRandom.nextFloat(), pRandom.nextFloat() * 0.7F + 0.6F, false);
             }
 
-            if (pRandom.nextInt(5) == 0) {
-                for (int i = 0; i < pRandom.nextInt(1) + 1; ++i) {
-                    pLevel.addParticle(ParticleTypes.LAVA, (double) pPos.getX() + 0.5D, (double) pPos.getY() + 1.125D,
-                            (double) pPos.getZ() + 0.5D, pRandom.nextFloat() / 2.0F, 5.0E-5D, pRandom.nextFloat() / 2.0F);
+            if (pRandom.nextFloat() < 0.11F) {
+                for (int i = 0; i < pRandom.nextInt(2) + 2; ++i) {
+                    CampfireBlock.makeParticles(pLevel, pPos, false, false);
                 }
             }
         }

@@ -79,7 +79,9 @@ public class FluidStackResourceFluidHandler implements IFluidHandlerModifiable {
             FluidStack filling = resource;
             if (filled != 0) {
                 filling = resource.copy();
-                filling.setAmount(resource.getAmount() - filled);
+                if (!filling.isEmpty()) {
+                    filling.setAmount(resource.getAmount() - filled);
+                }
             }
             filled += fluidTanks.get(tank).fill(filling, action);
             tank++;

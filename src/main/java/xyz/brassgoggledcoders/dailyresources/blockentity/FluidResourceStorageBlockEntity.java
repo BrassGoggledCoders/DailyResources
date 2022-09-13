@@ -56,7 +56,9 @@ public class FluidResourceStorageBlockEntity extends ResourceStorageBlockEntity<
             Arrays.fill(this.tankFluids, FluidStack.EMPTY);
             for (int i = 0; i < this.tankFluids.length; i++) {
                 FluidStack fluidStack = this.getHandler().getFluidInTank(i).copy();
-                fluidStack.setAmount((int) Math.ceil((fluidStack.getAmount() / (float) this.getHandler().getTankCapacity(i)) * 100));
+                if (!fluidStack.isEmpty()) {
+                    fluidStack.setAmount((int) Math.ceil((fluidStack.getAmount() / (float) this.getHandler().getTankCapacity(i)) * 100));
+                }
                 this.tankFluids[i] = fluidStack;
             }
             return true;
@@ -67,13 +69,17 @@ public class FluidResourceStorageBlockEntity extends ResourceStorageBlockEntity<
                 FluidStack current = this.getHandler().getFluidInTank(i);
                 if (!prior.isFluidEqual(current)) {
                     FluidStack fluidStack = current.copy();
-                    fluidStack.setAmount((int) Math.ceil((current.getAmount() / (float) this.getHandler().getTankCapacity(i)) * 100));
+                    if (!fluidStack.isEmpty()) {
+                        fluidStack.setAmount((int) Math.ceil((current.getAmount() / (float) this.getHandler().getTankCapacity(i)) * 100));
+                    }
                     this.tankFluids[i] = fluidStack;
                     different = true;
                 }
                 if (Math.abs(prior.getAmount() - current.getAmount()) > FluidAttributes.BUCKET_VOLUME) {
                     different = true;
-                    this.tankFluids[i].setAmount((int) Math.ceil((current.getAmount() / (float) this.getHandler().getTankCapacity(i)) * 100));
+                    if (!this.tankFluids[i].isEmpty()) {
+                        this.tankFluids[i].setAmount((int) Math.ceil((current.getAmount() / (float) this.getHandler().getTankCapacity(i)) * 100));
+                    }
                 }
             }
             return different;

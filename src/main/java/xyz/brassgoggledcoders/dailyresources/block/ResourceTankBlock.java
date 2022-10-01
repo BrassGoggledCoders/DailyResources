@@ -21,7 +21,6 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import xyz.brassgoggledcoders.dailyresources.DailyResources;
 import xyz.brassgoggledcoders.dailyresources.blockentity.FluidResourceStorageBlockEntity;
 import xyz.brassgoggledcoders.dailyresources.blockentity.ResourceStorageBlockEntity;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesBlocks;

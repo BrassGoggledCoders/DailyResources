@@ -1,6 +1,7 @@
 package xyz.brassgoggledcoders.dailyresources.blockentity;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -10,12 +11,15 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.data.IModelData;
 import net.minecraftforge.client.model.data.ModelDataMap;
 import net.minecraftforge.client.model.data.ModelProperty;
+import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidAttributes;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.items.CapabilityItemHandler;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorage;
 import xyz.brassgoggledcoders.dailyresources.capability.fluid.FluidHandlerWrapper;
 import xyz.brassgoggledcoders.dailyresources.capability.fluid.IFluidHandlerModifiable;
@@ -164,5 +168,15 @@ public class FluidResourceStorageBlockEntity extends ResourceStorageBlockEntity<
 
     public FluidStack[] getTankFluids() {
         return this.tankFluids;
+    }
+
+    @NotNull
+    @Override
+    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+        if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
+            return this.wrapper.cast();
+        }
+
+        return super.getCapability(cap, side);
     }
 }

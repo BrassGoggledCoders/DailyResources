@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.brassgoggledcoders.com/daily_resources/resource_group.schema.json",
+  "title": "Daily Resources' Resource Group",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "trigger": {
+      "type": "string",
+      "enum": [
+        "daily_resources:respawn",
+        "daily_resources:dawn",
+        "daily_resources:noon",
+        "daily_resources:dusk",
+        "daily_resources:midnight",
+        "daily_resources:dreamer",
+        "daily_resources:any",
+        "daily_resources:none"
+      ]
+    },
+    "name": {
+      "$ref": "https://raw.githubusercontent.com/Levertion/minecraft-json-schema/master/java/shared/text_component.json"
+    },
+    "resources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "oneOf": [
+          {
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "daily_resources:itemstack"
+                ]
+              },
+              "count": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 64,
+                "default": 64
+              },
+              "item": {
+                "type": "string",
+                "oneOf": [
+                  {
+                    "$ref": "https://raw.githubusercontent.com/Levertion/minecraft-json-schema/master/java/shared/resource_location.json"
+                  },
+                  {
+                    "$ref": "https://raw.githubusercontent.com/Levertion/minecraft-json-schema/master/java/shared/tag_location.json"
+                  }
+                ]
+              },
+              "nbt": {
+                "type": "object",
+                "additionalProperties": true,
+                "minProperties": 1
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "count",
+              "item"
+            ]
+          },
+          {
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "daily_resources:fluidstack"
+                ]
+              },
+              "amount": {
+                "type": "number",
+                "minimum": 1,
+                "default": 1000
+              },
+              "fluid": {
+                "type": "string",
+                "oneOf": [
+                  {
+                    "$ref": "https://raw.githubusercontent.com/Levertion/minecraft-json-schema/master/java/shared/resource_location.json"
+                  },
+                  {
+                    "$ref": "https://raw.githubusercontent.com/Levertion/minecraft-json-schema/master/java/shared/tag_location.json"
+                  }
+                ]
+              },
+              "nbt": {
+                "type": "object",
+                "additionalProperties": true,
+                "minProperties": 1
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "fluid",
+              "amount"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "required": [
+    "trigger",
+    "name",
+    "resources"
+  ]
+}

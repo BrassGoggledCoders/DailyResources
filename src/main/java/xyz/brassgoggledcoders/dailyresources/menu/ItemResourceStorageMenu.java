@@ -7,6 +7,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +29,7 @@ public class ItemResourceStorageMenu extends AbstractContainerMenu {
     private final IItemHandler itemHandler;
     private final List<Tab<ResourceScreenType>> tabs;
     private final ContainerLevelAccess levelAccess;
+    private final int containerRows;
 
     public ItemResourceStorageMenu(@Nullable MenuType<?> pMenuType, int pContainerId, Inventory inventory, IItemHandler storageInventory, UUID uniqueId,
                                    ContainerLevelAccess levelAccess, Consumer<Player> closeHandler, List<Tab<ResourceScreenType>> tabs) {
@@ -37,7 +39,7 @@ public class ItemResourceStorageMenu extends AbstractContainerMenu {
         this.levelAccess = levelAccess;
         this.closeHandler = closeHandler;
         this.tabs = tabs;
-        int containerRows = storageInventory.getSlots() / 9;
+        this.containerRows = storageInventory.getSlots() / 9;
         int i = (containerRows - 4) * 18;
 
         for (int j = 0; j < containerRows; ++j) {
@@ -90,6 +92,28 @@ public class ItemResourceStorageMenu extends AbstractContainerMenu {
         }
 
         return false;
+    }
+
+    @Override
+    @NotNull
+    public ItemStack quickMoveStack(@NotNull Player pPlayer, int pIndex) {
+        ItemStack itemStack = ItemStack.EMPTY;
+        Slot slot = this.slots.get(pIndex);
+        if (pIndex < this.itemHandler.getSlots() && slot != null && slot.hasItem()) {
+            ItemStack slotItemStack = slot.getItem();
+            itemStack = slotItemStack.copy();
+            if (!this.moveItemStackTo(slotItemStack, this.itemHandler.getSlots(), this.slots.size(), true)) {
+                return ItemStack.EMPTY;
+            }
+
+            if (slotItemStack.isEmpty()) {
+                slot.set(ItemStack.EMPTY);
+            } else {
+                slot.setChanged();
+            }
+        }
+
+        return itemStack;
     }
 
     @NotNull

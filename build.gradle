@@ -22,7 +22,7 @@ plugins {
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.parchmentmc.librarian.forgegradle'
 
-version = '0.2.2'
+version = '0.2.3'
 group = "xyz.brassgoggledcoders.${modId}"
 archivesBaseName = "${modId}"
 

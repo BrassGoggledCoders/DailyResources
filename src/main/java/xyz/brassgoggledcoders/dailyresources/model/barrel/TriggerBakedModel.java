@@ -62,8 +62,8 @@ public class TriggerBakedModel implements BakedModel {
             }
             bakedQuads.add(BlockModel.makeBakedQuad(
                     new BlockElement(
-                            new Vector3f(0, 0, 0),
-                            new Vector3f(16, 16, 16),
+                            new Vector3f(-0.01F, -0.01F, -0.01F),
+                            new Vector3f(16.01F, 16.01F, 16.01F),
                             new HashMap<>(),
                             null,
                             true

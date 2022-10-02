@@ -9,21 +9,31 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.network.chat.Component;
 
-public class ComponentCodec implements Codec<Component> {
+import java.util.function.Function;
+
+public class JsonCodec<T> implements Codec<T> {
+    private final Function<JsonElement, T> fromJson;
+    private final Function<T, JsonElement> toJson;
+
+    public JsonCodec(Function<JsonElement, T> fromJson, Function<T, JsonElement> toJson) {
+        this.fromJson = fromJson;
+        this.toJson = toJson;
+    }
+
     @Override
-    public <T> DataResult<Pair<Component, T>> decode(DynamicOps<T> ops, T input) {
+    public <U> DataResult<Pair<T, U>> decode(DynamicOps<U> ops, U input) {
         JsonElement element = ops.convertTo(JsonOps.INSTANCE, input);
 
         try {
-            return DataResult.success(Pair.of(Component.Serializer.fromJson(element), input));
+            return DataResult.success(Pair.of(fromJson.apply(element), input));
         } catch (JsonSyntaxException e) {
             return DataResult.error(e.getMessage());
         }
     }
 
     @Override
-    public <T> DataResult<T> encode(Component input, DynamicOps<T> ops, T prefix) {
-        JsonElement jsonElement = Component.Serializer.toJsonTree(input);
+    public <U> DataResult<U> encode(T input, DynamicOps<U> ops, U prefix) {
+        JsonElement jsonElement = toJson.apply(input);
         return DataResult.success(JsonOps.INSTANCE.convertTo(ops, jsonElement));
     }
 }

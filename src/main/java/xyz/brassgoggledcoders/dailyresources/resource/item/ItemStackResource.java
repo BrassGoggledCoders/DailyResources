@@ -9,8 +9,10 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
+import xyz.brassgoggledcoders.dailyresources.codec.Codecs;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesResources;
 import xyz.brassgoggledcoders.dailyresources.resource.Choice;
 import xyz.brassgoggledcoders.dailyresources.resource.Resource;
@@ -20,6 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -31,8 +34,10 @@ public class ItemStackResource implements Resource<ItemStack> {
             Codec.INT.optionalFieldOf("count", 1)
                     .forGetter(ItemStackResource::getCount),
             CompoundTag.CODEC.optionalFieldOf("nbt")
-                    .forGetter(itemStackResource -> Optional.ofNullable(itemStackResource.getNbt()))
-    ).apply(instance, (item, count, nbt) -> new ItemStackResource(item, count, nbt.orElse(null))));
+                    .forGetter(itemStackResource -> Optional.ofNullable(itemStackResource.getNbt())),
+            Codecs.INGREDIENT.optionalFieldOf("remove")
+                    .forGetter(itemStackResource -> Optional.ofNullable(itemStackResource.getRemovalIngredient()))
+    ).apply(instance, (item, count, nbt, filter) -> new ItemStackResource(item, count, nbt.orElse(null), filter.orElse(Ingredient.EMPTY))));
 
     @SuppressWarnings({"unchecked"})
     public static final Supplier<Codec<Choice<ItemStack>>> CHOICE_CODEC = Suppliers.memoize(() ->
@@ -46,13 +51,21 @@ public class ItemStackResource implements Resource<ItemStack> {
     private final Either<TagKey<Item>, Item> item;
     private final int count;
     private final CompoundTag nbt;
+    private final Ingredient removalIngredient;
+    private final Predicate<ItemStack> removalPredicate;
 
     private final Supplier<Collection<Choice<ItemStack>>> choices = Suppliers.memoize(this::generateChoices);
 
-    public ItemStackResource(Either<TagKey<Item>, Item> item, int count, CompoundTag nbt) {
+    public ItemStackResource(Either<TagKey<Item>, Item> item, int count, CompoundTag nbt, Ingredient ingredient) {
         this.item = item;
         this.count = count;
         this.nbt = nbt;
+        this.removalIngredient = ingredient;
+        if (this.removalIngredient.isEmpty()) {
+            this.removalPredicate = itemStack -> false;
+        } else {
+            this.removalPredicate = removalIngredient;
+        }
     }
 
     @Override
@@ -100,6 +113,10 @@ public class ItemStackResource implements Resource<ItemStack> {
         return nbt;
     }
 
+    private Ingredient getRemovalIngredient() {
+        return this.removalIngredient;
+    }
+
     private List<Choice<ItemStack>> generateChoices() {
         return this.getItem()
                 .map(
@@ -112,6 +129,7 @@ public class ItemStackResource implements Resource<ItemStack> {
                     itemStack.setTag(this.getNbt());
                     return itemStack;
                 })
+                .filter(this.removalPredicate.negate())
                 .map(itemStack -> new Choice<>(this, itemStack))
                 .toList();
     }

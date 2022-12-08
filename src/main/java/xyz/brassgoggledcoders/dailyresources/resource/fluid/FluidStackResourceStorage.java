@@ -4,8 +4,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Direction;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +47,7 @@ public class FluidStackResourceStorage extends ResourceStorage {
     @NotNull
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        return CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.orEmpty(cap, this.lazyOptional);
+        return ForgeCapabilities.FLUID_HANDLER.orEmpty(cap, this.lazyOptional);
     }
 
     public FluidStackResourceFluidHandler getFluidHandler() {

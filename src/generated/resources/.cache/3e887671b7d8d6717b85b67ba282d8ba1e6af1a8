@@ -1,0 +1,14 @@
+// 1.19.2	2022-12-07T20:51:12.4045437	Registrate Provider for daily_resources [Recipes, Advancements, Loot tables, Tags (blocks), Tags (items), Tags (fluids), Tags (entity_types), Blockstates, Item models, Lang (en_us/en_ud)]
+2a21575fe4231967c02adfe1fe0f973740afbd13 assets/daily_resources/blockstates/barrel.json
+2d7f4f4070cf0135efb53cdcf428de208fcd207e assets/daily_resources/blockstates/iron_tank.json
+68a471e9cbe9b07d5811d965dc0bc410d3ef0dad assets/daily_resources/lang/en_ud.json
+5ce841e7b2edd871e903a56812d3f7807344168f assets/daily_resources/lang/en_us.json
+9fa12c873c7618021a100a264e0466e977817b99 assets/daily_resources/models/block/barrel.json
+77c8d3e745b4a84dac00787189e774108c341e24 assets/daily_resources/models/block/barrel_open.json
+effaa97e97bc8eb72026e3e14e451418db37ae46 assets/daily_resources/models/block/iron_tank.json
+f5c635d9199c6a5f6e9a050ee4a666a670eaedac assets/daily_resources/models/item/barrel.json
+b84a64addf0300c0d1c210b8b59a37ecb5b880f0 assets/daily_resources/models/item/iron_tank.json
+e3e85d992602c6d790f46b0226a6cdb371d3330a data/daily_resources/loot_tables/blocks/barrel.json
+2952c93b3d2d4203a6b6bfceaf8ad3e7070c1142 data/daily_resources/loot_tables/blocks/iron_tank.json
+b0329e41e17038bf5922b6b0eb57977e9ac07311 data/minecraft/tags/blocks/mineable/axe.json
+e0a3053dee14a3cdee45795d61a5f4630d5c49a0 data/minecraft/tags/blocks/mineable/pickaxe.json

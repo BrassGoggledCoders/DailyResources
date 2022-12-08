@@ -2,7 +2,6 @@ package xyz.brassgoggledcoders.dailyresources.screen.fluid;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
@@ -23,7 +22,7 @@ public class FluidResourceSelectorScreen extends ResourceSelectorScreen<FluidSta
     protected void renderIconTooltip(@NotNull PoseStack pPoseStack, FluidStack object, int mouseX, int mouseY) {
         List<Component> components = new ArrayList<>();
         components.add(object.getDisplayName());
-        components.add(new TextComponent(object.getAmount() + "mb"));
+        components.add(Component.literal(object.getAmount() + "mb"));
         this.renderTooltip(pPoseStack, components, Optional.empty(), mouseX, mouseY);
     }
 

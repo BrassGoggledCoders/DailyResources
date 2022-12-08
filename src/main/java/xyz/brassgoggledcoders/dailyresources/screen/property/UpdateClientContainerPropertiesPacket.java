@@ -37,21 +37,18 @@ public class UpdateClientContainerPropertiesPacket {
         }
     }
 
-    public boolean consume(Supplier<NetworkEvent.Context> contextSupplier) {
-        contextSupplier.get().enqueueWork(() -> {
-            LocalPlayer playerEntity = Minecraft.getInstance().player;
-            if (playerEntity != null && playerEntity.containerMenu instanceof IPropertyManaged propertyManaged) {
-                if (playerEntity.containerMenu.containerId == menuId) {
-                    PropertyManager propertyManager = propertyManaged.getPropertyManager();
-                    for (Triple<PropertyType<?>, Short, Object> update : updates) {
-                        propertyManager.update(update.getLeft(), update.getMiddle(), update.getRight());
-                    }
+    public void consume(Supplier<NetworkEvent.Context> ignoredContextSupplier) {
+        LocalPlayer playerEntity = Minecraft.getInstance().player;
+        if (playerEntity != null && playerEntity.containerMenu instanceof IPropertyManaged propertyManaged) {
+            if (playerEntity.containerMenu.containerId == menuId) {
+                PropertyManager propertyManager = propertyManaged.getPropertyManager();
+                for (Triple<PropertyType<?>, Short, Object> update : updates) {
+                    propertyManager.update(update.getLeft(), update.getMiddle(), update.getRight());
                 }
-            } else {
-                DailyResources.LOGGER.info("Container is not instance of IPropertyManaged");
             }
-        });
-        return true;
+        } else {
+            DailyResources.LOGGER.info("Container is not instance of IPropertyManaged");
+        }
     }
 
     public static UpdateClientContainerPropertiesPacket decode(FriendlyByteBuf packetBuffer) {

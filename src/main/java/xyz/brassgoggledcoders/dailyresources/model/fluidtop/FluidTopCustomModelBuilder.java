@@ -6,6 +6,7 @@ import com.mojang.math.Vector3f;
 import net.minecraftforge.client.model.generators.CustomLoaderBuilder;
 import net.minecraftforge.client.model.generators.ModelBuilder;
 import net.minecraftforge.common.data.ExistingFileHelper;
+import xyz.brassgoggledcoders.dailyresources.DailyResources;
 import xyz.brassgoggledcoders.dailyresources.model.barrel.TriggerModelLoader;
 
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ public class FluidTopCustomModelBuilder<T extends ModelBuilder<T>> extends Custo
 
 
     public FluidTopCustomModelBuilder(T parent, ExistingFileHelper existingFileHelper) {
-        super(FluidTopModelLoader.ID, parent, existingFileHelper);
+        super(DailyResources.rl(FluidTopModelLoader.ID), parent, existingFileHelper);
         this.fluidInfo = new ArrayList<>();
     }
 

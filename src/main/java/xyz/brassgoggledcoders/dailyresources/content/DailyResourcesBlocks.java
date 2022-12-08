@@ -4,7 +4,7 @@ import com.mojang.math.Vector3f;
 import com.tterrag.registrate.providers.loot.RegistrateBlockLootTables;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.BlockEntry;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
@@ -34,7 +34,6 @@ public class DailyResourcesBlocks {
                     .sound(SoundType.WOOD)
             )
             .tag(BlockTags.MINEABLE_WITH_AXE)
-            .addLayer(() -> RenderType::cutout)
             .blockstate((context, provider) -> {
                 ModelFile openBarrel = provider.models().cubeBottomTop(
                         "block/barrel_open",
@@ -82,7 +81,6 @@ public class DailyResourcesBlocks {
                     .sound(SoundType.METAL)
             )
             .loot(DailyResourcesBlocks::dropSelfWithInfo)
-            .addLayer(() -> RenderType::cutout)
             .tag(BlockTags.MINEABLE_WITH_PICKAXE)
             .blockstate((context, provider) -> provider.horizontalBlock(
                     context.get(),

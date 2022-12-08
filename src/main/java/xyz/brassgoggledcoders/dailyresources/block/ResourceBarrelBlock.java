@@ -5,6 +5,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -28,7 +29,6 @@ import xyz.brassgoggledcoders.dailyresources.blockentity.ResourceStorageBlockEnt
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesBlocks;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.Random;
 
 public class ResourceBarrelBlock extends Block implements EntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
@@ -78,7 +78,7 @@ public class ResourceBarrelBlock extends Block implements EntityBlock {
     @Override
     @SuppressWarnings("deprecation")
     @ParametersAreNonnullByDefault
-    public void tick(BlockState pState, ServerLevel pLevel, BlockPos pPos, Random pRandom) {
+    public void tick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
         BlockEntity blockentity = pLevel.getBlockEntity(pPos);
         if (blockentity instanceof ItemResourceStorageBlockEntity resourceStorageBlockEntity) {
             resourceStorageBlockEntity.recheckOpen();
@@ -153,7 +153,7 @@ public class ResourceBarrelBlock extends Block implements EntityBlock {
 
     @Override
     @ParametersAreNonnullByDefault
-    public void animateTick(BlockState pState, Level pLevel, BlockPos pPos, Random pRandom) {
+    public void animateTick(BlockState pState, Level pLevel, BlockPos pPos, RandomSource pRandom) {
         super.animateTick(pState, pLevel, pPos, pRandom);
         if (pState.getValue(FULL)) {
             if (pRandom.nextInt(10) == 0) {

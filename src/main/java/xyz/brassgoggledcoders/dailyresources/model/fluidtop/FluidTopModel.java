@@ -7,8 +7,8 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraftforge.client.model.IModelConfiguration;
-import net.minecraftforge.client.model.geometry.IModelGeometry;
+import net.minecraftforge.client.model.geometry.IGeometryBakingContext;
+import net.minecraftforge.client.model.geometry.IUnbakedGeometry;
 import xyz.brassgoggledcoders.dailyresources.content.DailyResourcesTriggers;
 import xyz.brassgoggledcoders.dailyresources.trigger.Trigger;
 
@@ -17,7 +17,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 
-public class FluidTopModel implements IModelGeometry<FluidTopModel> {
+public class FluidTopModel implements IUnbakedGeometry<FluidTopModel> {
     private final BlockModel blockModel;
     private final FluidModelInfo[] fluidInfo;
 
@@ -27,7 +27,7 @@ public class FluidTopModel implements IModelGeometry<FluidTopModel> {
     }
 
     @Override
-    public BakedModel bake(IModelConfiguration owner, ModelBakery bakery, Function<Material, TextureAtlasSprite> spriteGetter,
+    public BakedModel bake(IGeometryBakingContext owner, ModelBakery bakery, Function<Material, TextureAtlasSprite> spriteGetter,
                            ModelState modelTransform, ItemOverrides overrides, ResourceLocation modelLocation) {
         return new FluidTopBakedModel(
                 blockModel.bake(
@@ -44,12 +44,12 @@ public class FluidTopModel implements IModelGeometry<FluidTopModel> {
     }
 
     @Override
-    public Collection<Material> getTextures(IModelConfiguration owner, Function<ResourceLocation, UnbakedModel> modelGetter, Set<Pair<String, String>> missingTextureErrors) {
+    public Collection<Material> getMaterials(IGeometryBakingContext owner, Function<ResourceLocation, UnbakedModel> modelGetter, Set<Pair<String, String>> missingTextureErrors) {
         Set<Material> materials = new HashSet<>(blockModel.getMaterials(modelGetter, missingTextureErrors));
-        DailyResourcesTriggers.REGISTRY.get()
+        DailyResourcesTriggers.getRegistry()
                 .getValues()
                 .stream()
-                .map(Trigger::getTexture)
+                .map(Trigger::texture)
                 .map(texture -> new Material(InventoryMenu.BLOCK_ATLAS, texture))
                 .forEach(materials::add);
         return materials;

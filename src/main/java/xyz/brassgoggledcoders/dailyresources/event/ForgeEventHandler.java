@@ -59,8 +59,8 @@ public class ForgeEventHandler {
     }
 
     @SubscribeEvent
-    public static void timeTrigger(TickEvent.WorldTickEvent worldTickEvent) {
-        Level level = worldTickEvent.world;
+    public static void timeTrigger(TickEvent.LevelTickEvent worldTickEvent) {
+        Level level = worldTickEvent.level;
         if (level instanceof ServerLevel serverLevel && worldTickEvent.phase == TickEvent.Phase.END &&
                 level.dimension() == Level.OVERWORLD) {
             long time = level.getDayTime() % 24000L;
@@ -79,15 +79,15 @@ public class ForgeEventHandler {
 
     @SubscribeEvent
     public static void respawnTrigger(PlayerEvent.PlayerRespawnEvent event) {
-        if (!event.isEndConquered() && event.getPlayer().getLevel() instanceof ServerLevel serverLevel) {
-            trigger(serverLevel, DailyResourcesTriggers.RESPAWN, Collections.singleton(event.getPlayer().getUUID()));
+        if (!event.isEndConquered() && event.getEntity().getLevel() instanceof ServerLevel serverLevel) {
+            trigger(serverLevel, DailyResourcesTriggers.RESPAWN, Collections.singleton(event.getEntity().getUUID()));
         }
     }
 
     @SubscribeEvent
     public static void dreamerTrigger(PlayerWakeUpEvent event) {
-        if (!event.wakeImmediately() && event.getPlayer().getLevel() instanceof ServerLevel serverLevel) {
-            trigger(serverLevel, DailyResourcesTriggers.DREAMER, Collections.singleton(event.getPlayer().getUUID()));
+        if (!event.wakeImmediately() && event.getEntity().getLevel() instanceof ServerLevel serverLevel) {
+            trigger(serverLevel, DailyResourcesTriggers.DREAMER, Collections.singleton(event.getEntity().getUUID()));
         }
     }
 

@@ -4,7 +4,6 @@ import com.mojang.datafixers.util.Function3;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -57,7 +56,7 @@ public enum ResourceScreenType {
         @Override
         public Tab<ResourceScreenType> getTab(Block block, List<Pair<UUID, ResourceGroup>> choices) {
             List<Component> components = choices.stream()
-                    .map(pair -> new TextComponent(" * ")
+                    .map(pair -> Component.literal(" * ")
                             .append(pair.getSecond().name())
                             .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC)
                     )
@@ -149,7 +148,7 @@ public enum ResourceScreenType {
         @Override
         public Tab<ResourceScreenType> getTab(Block block, List<Pair<UUID, ResourceGroup>> choices) {
             List<Component> components = choices.stream()
-                    .map(pair -> new TextComponent(" * ")
+                    .map(pair -> Component.literal(" * ")
                             .append(pair.getSecond().name())
                             .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC)
                     )

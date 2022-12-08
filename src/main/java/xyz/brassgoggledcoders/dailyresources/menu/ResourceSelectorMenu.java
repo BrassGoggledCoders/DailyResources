@@ -136,6 +136,12 @@ public class ResourceSelectorMenu<T> extends AbstractContainerMenu {
         return false;
     }
 
+    @Override
+    @NotNull
+    public ItemStack quickMoveStack(@NotNull Player pPlayer, int pIndex) {
+        return null;
+    }
+
     private boolean hasValidGroupIndex(int index) {
         return index >= 0 && index < this.groupsToChoose.size();
     }
@@ -215,6 +221,7 @@ public class ResourceSelectorMenu<T> extends AbstractContainerMenu {
         }
     }
 
+    @SuppressWarnings("deprecation")
     @NotNull
     public static <T> ResourceSelectorMenu<T> create(MenuType<ResourceSelectorMenu<T>> menuType, int id, Inventory inventory,
                                                      @Nullable FriendlyByteBuf friendlyByteBuf, ResourceType<T> resourceType) {

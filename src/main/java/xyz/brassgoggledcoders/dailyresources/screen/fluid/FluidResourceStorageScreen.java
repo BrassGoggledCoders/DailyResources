@@ -7,12 +7,12 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraftforge.fluids.FluidAttributes;
+import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.NotNull;
 import xyz.brassgoggledcoders.dailyresources.DailyResources;
@@ -41,11 +41,11 @@ public class FluidResourceStorageScreen extends AbstractContainerScreen<FluidRes
         TabRendering.renderTabs(this.leftPos, this.topPos, pPoseStack, this.menu.getTabs(), false, Predicate.not(ResourceScreenType::isSelector), this);
         super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         TabRendering.renderTabs(this.leftPos, this.topPos, pPoseStack, this.menu.getTabs(), true, Predicate.not(ResourceScreenType::isSelector), this);
-        this.renderTanks(pPoseStack, pPartialTick);
+        this.renderTanks(pPoseStack);
         this.renderTooltip(pPoseStack, pMouseX, pMouseY);
     }
 
-    private void renderTanks(@NotNull PoseStack pPoseStack, float pPartialTick) {
+    private void renderTanks(@NotNull PoseStack pPoseStack) {
         IFluidHandler fluidHandler = this.menu.getFluidHandler();
         for (int i = 0; i < fluidHandler.getTanks(); i++) {
             FluidStack fluidStack = fluidHandler.getFluidInTank(i);
@@ -60,18 +60,17 @@ public class FluidResourceStorageScreen extends AbstractContainerScreen<FluidRes
                 }
                 int offset = stored * height / capacity;
 
-                FluidAttributes fluidAttributes = fluidStack.getFluid()
-                        .getAttributes();
-                ResourceLocation flowing = fluidAttributes.getStillTexture(fluidStack);
+                FluidType fluidType = fluidStack.getFluid()
+                        .getFluidType();
+                IClientFluidTypeExtensions clientFluidTypeExtensions = IClientFluidTypeExtensions.of(fluidType);
+                ResourceLocation flowing = clientFluidTypeExtensions.getStillTexture(fluidStack);
                 if (flowing != null) {
                     TextureAtlasSprite flowingSprite = Minecraft.getInstance()
                             .getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
                             .apply(flowing);
                     RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
 
-                    Color color = new Color(fluidStack.getFluid()
-                            .getAttributes()
-                            .getColor());
+                    Color color = new Color(clientFluidTypeExtensions.getTintColor(fluidStack));
 
                     RenderSystem.setShaderColor(
                             (float) color.getRed() / 255.0F,
@@ -80,7 +79,7 @@ public class FluidResourceStorageScreen extends AbstractContainerScreen<FluidRes
                             (float) color.getAlpha() / 255.0F
                     );
                     RenderSystem.enableBlend();
-                    int startY = y + (fluidAttributes.isGaseous() ? 0 : height - offset);
+                    int startY = y + (fluidType.isAir() ? 0 : height - offset);
                     blit(pPoseStack, x, startY, 0, 16, offset, flowingSprite);
                     RenderSystem.disableBlend();
                     RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -115,7 +114,7 @@ public class FluidResourceStorageScreen extends AbstractContainerScreen<FluidRes
                 if (!fluidStack.isEmpty()) {
                     List<Component> components = new ArrayList<>();
                     components.add(fluidStack.getDisplayName());
-                    components.add(new TextComponent(fluidStack.getAmount() + "mb"));
+                    components.add(Component.literal(fluidStack.getAmount() + "mb"));
                     renderTooltip(
                             pPoseStack,
                             components,

@@ -14,9 +14,9 @@ public interface Resource<T> {
     Supplier<Codec<Resource<?>>> RESOURCE_CODEC = Suppliers.memoize(() -> new OptionalTypeKeyDispatchCodec<ResourceType<?>, Resource<?>>(
             DailyResourcesResources.ITEMSTACK.getId().toString(),
             "type",
-            DailyResourcesResources.REGISTRY.get().getCodec(),
+            DailyResourcesResources.getRegistry().getCodec(),
             Resource::getResourceType,
-            ResourceType::getResourceCodec
+            ResourceType::resourceCodec
     ).codec());
 
     @NotNull

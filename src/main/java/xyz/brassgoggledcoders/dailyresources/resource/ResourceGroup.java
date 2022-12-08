@@ -19,7 +19,7 @@ public record ResourceGroup(
 ) {
     public static final Supplier<Codec<ResourceGroup>> CODEC = Suppliers.memoize(() -> RecordCodecBuilder.create(instance -> instance.group(
             Codec.list(Resource.RESOURCE_CODEC.get()).fieldOf("resources").forGetter(ResourceGroup::resources),
-            DailyResourcesTriggers.REGISTRY.get().getCodec().fieldOf("trigger").forGetter(ResourceGroup::trigger),
+            DailyResourcesTriggers.getRegistry().getCodec().fieldOf("trigger").forGetter(ResourceGroup::trigger),
             Codecs.COMPONENT.fieldOf("name").forGetter(ResourceGroup::name)
     ).apply(instance, ResourceGroup::new)));
 

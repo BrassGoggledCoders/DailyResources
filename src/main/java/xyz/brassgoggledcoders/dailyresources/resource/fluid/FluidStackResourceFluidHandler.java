@@ -2,8 +2,8 @@ package xyz.brassgoggledcoders.dailyresources.resource.fluid;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraftforge.fluids.FluidAttributes;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 import org.jetbrains.annotations.NotNull;
 import xyz.brassgoggledcoders.dailyresources.capability.fluid.IFluidHandlerModifiable;
@@ -17,7 +17,7 @@ public class FluidStackResourceFluidHandler implements IFluidHandlerModifiable {
     public static final Codec<FluidTank> TANK_CODEC = RecordCodecBuilder.create(instance -> instance.group(
             FluidStack.CODEC.fieldOf("fluid").forGetter(FluidTank::getFluid)
     ).apply(instance, fluidStack -> {
-        FluidTank fluidTank = new FluidTank(FluidAttributes.BUCKET_VOLUME * 16);
+        FluidTank fluidTank = new FluidTank(FluidType.BUCKET_VOLUME * 16);
         fluidTank.setFluid(fluidStack);
         return fluidTank;
     }));
@@ -33,7 +33,7 @@ public class FluidStackResourceFluidHandler implements IFluidHandlerModifiable {
     public FluidStackResourceFluidHandler(int tanks) {
         this.fluidTanks = new ArrayList<>();
         for (int i = 0; i < tanks; i++) {
-            this.fluidTanks.add(new FluidTank(FluidAttributes.BUCKET_VOLUME * 16));
+            this.fluidTanks.add(new FluidTank(FluidType.BUCKET_VOLUME * 16));
         }
     }
 

@@ -22,7 +22,7 @@ plugins {
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.parchmentmc.librarian.forgegradle'
 
-version = '0.2.3'
+version = '0.3.0'
 group = "xyz.brassgoggledcoders.${modId}"
 archivesBaseName = "${modId}"
 
@@ -51,7 +51,7 @@ sourceSets {
 }
 
 minecraft {
-    mappings channel: 'parchment', version: '2022.03.13-1.18.2'
+    mappings channel: 'parchment', version: '2022.10.16-1.19.2'
 
     runs {
         client {
@@ -160,18 +160,17 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.18.2-40.1.20'
+    minecraft 'net.minecraftforge:forge:1.19.2-43.1.65'
 
-    def registrate = "com.tterrag.registrate:Registrate:MC1.18.2-1.0.25"
+    def registrate = "com.tterrag.registrate:Registrate:MC1.19-1.1.5"
     implementation fg.deobf(registrate)
     shade registrate
 
-    implementation fg.deobf("curse.maven:the-one-probe-245211:3671753")
-    runtimeOnly fg.deobf("curse.maven:refined-pipes-370696:3816785")
+    runtimeOnly fg.deobf("curse.maven:the_one_probe-245211:3965693")
 
-    compileOnly fg.deobf("mezz.jei:jei-1.18.2-forge-api:10.0.0.184")
-    compileOnly fg.deobf("mezz.jei:jei-1.18.2-common-api:10.0.0.184")
-    runtimeOnly fg.deobf("mezz.jei:jei-1.18.2-forge:10.0.0.184")
+    compileOnly fg.deobf("mezz.jei:jei-1.19.2-forge-api:11.4.0.282")
+    compileOnly fg.deobf("mezz.jei:jei-1.19.2-common-api:11.4.0.282")
+    runtimeOnly fg.deobf("mezz.jei:jei-1.19.2-forge:11.4.0.282")
 }
 
 jar {
@@ -212,5 +211,11 @@ publishing {
         maven {
             url "file://${project.projectDir}/mcmodsrepo"
         }
+    }
+}
+
+gradle.projectsEvaluated {
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << "-Xmaxerrs" << "10000"
     }
 }

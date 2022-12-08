@@ -27,13 +27,13 @@ public class NetworkHandler {
         this.simpleChannel.messageBuilder(MenuClickPacket.class, 0)
                 .encoder(MenuClickPacket::encode)
                 .decoder(MenuClickPacket::decode)
-                .consumer(MenuClickPacket::consume)
+                .consumerMainThread(MenuClickPacket::consume)
                 .add();
 
         this.simpleChannel.messageBuilder(UpdateClientContainerPropertiesPacket.class, 1)
                 .encoder(UpdateClientContainerPropertiesPacket::encode)
                 .decoder(UpdateClientContainerPropertiesPacket::decode)
-                .consumer(UpdateClientContainerPropertiesPacket::consume)
+                .consumerMainThread(UpdateClientContainerPropertiesPacket::consume)
                 .add();
     }
 

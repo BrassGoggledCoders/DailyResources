@@ -21,8 +21,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.model.data.IModelData;
-import net.minecraftforge.client.model.data.ModelDataMap;
+import net.minecraftforge.client.model.data.ModelData;
 import net.minecraftforge.client.model.data.ModelProperty;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.network.NetworkHooks;
@@ -171,7 +170,7 @@ public abstract class ResourceStorageBlockEntity<T> extends BlockEntity implemen
             this.uniqueId = pTag.getUUID("UniqueId");
         }
         if (pTag.contains("Trigger")) {
-            this.nbtTrigger = DailyResourcesTriggers.REGISTRY.get()
+            this.nbtTrigger = DailyResourcesTriggers.getRegistry()
                     .getValue(new ResourceLocation(pTag.getString("Trigger")));
         }
         if (pTag.contains("ResourceGroup")) {
@@ -204,7 +203,7 @@ public abstract class ResourceStorageBlockEntity<T> extends BlockEntity implemen
             pTag.put("ResourceGroups", resourceGroupTag);
         }
         if (this.nbtTrigger != null) {
-            pTag.putString("Trigger", Objects.requireNonNull(this.nbtTrigger.getRegistryName()).toString());
+            pTag.putString("Trigger", Objects.requireNonNull(DailyResourcesTriggers.getRegistry().getKey(this.nbtTrigger)).toString());
         }
     }
 
@@ -213,7 +212,7 @@ public abstract class ResourceStorageBlockEntity<T> extends BlockEntity implemen
     public CompoundTag getUpdateTag() {
         CompoundTag tag = super.getUpdateTag();
         Optional.ofNullable(this.getTrigger())
-                .map(Trigger::getRegistryName)
+                .map(DailyResourcesTriggers.getRegistry()::getKey)
                 .map(ResourceLocation::toString)
                 .ifPresent(triggerName -> tag.putString("Trigger", triggerName));
         return tag;
@@ -235,7 +234,7 @@ public abstract class ResourceStorageBlockEntity<T> extends BlockEntity implemen
     public void handleUpdateTag(CompoundTag tag) {
         super.handleUpdateTag(tag);
         if (tag.contains("Trigger")) {
-            this.trigger = DailyResourcesTriggers.REGISTRY.get().getValue(new ResourceLocation(tag.getString("Trigger")));
+            this.trigger = DailyResourcesTriggers.getRegistry().getValue(new ResourceLocation(tag.getString("Trigger")));
             requestModelDataUpdate();
             if (level != null) {
                 level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), Block.UPDATE_ALL);
@@ -252,9 +251,9 @@ public abstract class ResourceStorageBlockEntity<T> extends BlockEntity implemen
 
     @NotNull
     @Override
-    public IModelData getModelData() {
-        return new ModelDataMap.Builder()
-                .withInitial(ResourceStorageBlockEntity.TRIGGER_PROPERTY, this.getTrigger())
+    public ModelData getModelData() {
+        return ModelData.builder()
+                .with(ResourceStorageBlockEntity.TRIGGER_PROPERTY, this.getTrigger())
                 .build();
     }
 
@@ -264,6 +263,7 @@ public abstract class ResourceStorageBlockEntity<T> extends BlockEntity implemen
 
     protected abstract ResourceScreenType getDefaultScreenType(boolean hasChoices);
 
+    @SuppressWarnings("deprecation")
     public void openMenu(Player pPlayer, @Nullable ResourceScreenType resourceScreenType) {
         if (pPlayer instanceof ServerPlayer serverPlayer) {
             if (pPlayer.containerMenu instanceof ResourceSelectorMenu<?> menu) {
@@ -274,7 +274,7 @@ public abstract class ResourceStorageBlockEntity<T> extends BlockEntity implemen
                 resourceScreenType = this.getDefaultScreenType(!choices.isEmpty());
             }
             ResourceScreenType finalResourceScreenType = resourceScreenType;
-            NetworkHooks.openGui(
+            NetworkHooks.openScreen(
                     serverPlayer,
                     new BasicMenuProvider<>(
                             resourceScreenType.getDisplayName(),

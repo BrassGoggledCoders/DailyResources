@@ -1,7 +1,9 @@
 package xyz.brassgoggledcoders.dailyresources.model.barrel;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Transformation;
 import com.mojang.math.Vector3f;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.*;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
@@ -9,22 +11,24 @@ import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraftforge.client.ChunkRenderTypeSet;
 import net.minecraftforge.client.model.SimpleModelState;
-import net.minecraftforge.client.model.data.EmptyModelData;
-import net.minecraftforge.client.model.data.IModelData;
+import net.minecraftforge.client.model.data.ModelData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.brassgoggledcoders.dailyresources.blockentity.ResourceStorageBlockEntity;
 import xyz.brassgoggledcoders.dailyresources.trigger.Trigger;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 import java.util.function.Function;
 
 public class TriggerBakedModel implements BakedModel {
@@ -40,16 +44,16 @@ public class TriggerBakedModel implements BakedModel {
 
     @Override
     @NotNull
-    public List<BakedQuad> getQuads(@Nullable BlockState pState, @Nullable Direction pSide, @NotNull Random pRand) {
-        return new ArrayList<>(model.getQuads(pState, pSide, pRand, EmptyModelData.INSTANCE));
+    public List<BakedQuad> getQuads(@Nullable BlockState pState, @Nullable Direction pSide, @NotNull RandomSource pRand) {
+        return new ArrayList<>(model.getQuads(pState, pSide, pRand, ModelData.EMPTY, RenderType.solid()));
     }
 
     @Override
     @NotNull
-    public List<BakedQuad> getQuads(@Nullable BlockState pState, @Nullable Direction pSide, @NotNull Random pRand, @NotNull IModelData modelData) {
-        List<BakedQuad> bakedQuads = new ArrayList<>(model.getQuads(pState, pSide, pRand, modelData));
-        Trigger trigger = modelData.getData(ResourceStorageBlockEntity.TRIGGER_PROPERTY);
-        if (trigger != null) {
+    public List<BakedQuad> getQuads(@Nullable BlockState pState, @Nullable Direction pSide, @NotNull RandomSource pRand, @NotNull ModelData modelData, @Nullable RenderType renderType) {
+        List<BakedQuad> bakedQuads = new ArrayList<>(model.getQuads(pState, pSide, pRand, modelData, renderType));
+        Trigger trigger = modelData.get(ResourceStorageBlockEntity.TRIGGER_PROPERTY);
+        if (trigger != null && renderType == RenderType.cutout()) {
             Direction facing;
             if (pState == null) {
                 facing = Direction.NORTH;
@@ -60,7 +64,7 @@ public class TriggerBakedModel implements BakedModel {
             } else {
                 facing = Direction.NORTH;
             }
-            bakedQuads.add(BlockModel.makeBakedQuad(
+            bakedQuads.add(BlockModel.bakeFace(
                     new BlockElement(
                             new Vector3f(-0.01F, -0.01F, -0.01F),
                             new Vector3f(16.01F, 16.01F, 16.01F),
@@ -71,7 +75,7 @@ public class TriggerBakedModel implements BakedModel {
                     new BlockElementFace(
                             facing.getOpposite(),
                             1,
-                            trigger.getTexture().toString(),
+                            trigger.texture().toString(),
                             new BlockFaceUV(
                                     new float[]{
                                             0, 0, 16, 16
@@ -79,9 +83,9 @@ public class TriggerBakedModel implements BakedModel {
                                     0
                             )
                     ),
-                    spriteGetter.apply(new Material(InventoryMenu.BLOCK_ATLAS, trigger.getTexture())),
+                    spriteGetter.apply(new Material(InventoryMenu.BLOCK_ATLAS, trigger.texture())),
                     facing,
-                    SimpleModelState.IDENTITY,
+                    new SimpleModelState(Transformation.identity()),
                     modelLocation
             ));
         }
@@ -123,16 +127,38 @@ public class TriggerBakedModel implements BakedModel {
 
     @NotNull
     @Override
-    public IModelData getModelData(@NotNull BlockAndTintGetter level, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull IModelData modelData) {
+    public ModelData getModelData(@NotNull BlockAndTintGetter level, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull ModelData modelData) {
         modelData = model.getModelData(level, pos, state, modelData);
         if (level.getBlockEntity(pos) instanceof ResourceStorageBlockEntity<?> resourceStorageBlockEntity) {
-            modelData.setData(ResourceStorageBlockEntity.TRIGGER_PROPERTY, resourceStorageBlockEntity.getTrigger());
+            modelData = modelData.derive()
+                    .with(ResourceStorageBlockEntity.TRIGGER_PROPERTY, resourceStorageBlockEntity.getTrigger())
+                    .build();
         }
         return modelData;
     }
 
     @Override
-    public BakedModel handlePerspective(ItemTransforms.TransformType cameraTransformType, PoseStack poseStack) {
-        return model.handlePerspective(cameraTransformType, poseStack);
+    @NotNull
+    @ParametersAreNonnullByDefault
+    public BakedModel applyTransform(ItemTransforms.TransformType transformType, PoseStack poseStack, boolean applyLeftHandTransform) {
+        this.model.applyTransform(transformType, poseStack, applyLeftHandTransform);
+        return this;
+    }
+
+    @Override
+    @NotNull
+    public ChunkRenderTypeSet getRenderTypes(@NotNull BlockState state, @NotNull RandomSource rand, @NotNull ModelData data) {
+        return ChunkRenderTypeSet.union(
+                this.model.getRenderTypes(state, rand, data),
+                ChunkRenderTypeSet.of(RenderType.cutout())
+        );
+    }
+
+    @Override
+    @NotNull
+    public List<RenderType> getRenderTypes(@NotNull ItemStack itemStack, boolean fabulous) {
+        List<RenderType> renderTypes = new ArrayList<>(this.model.getRenderTypes(itemStack, fabulous));
+        renderTypes.add(RenderType.cutout());
+        return renderTypes;
     }
 }

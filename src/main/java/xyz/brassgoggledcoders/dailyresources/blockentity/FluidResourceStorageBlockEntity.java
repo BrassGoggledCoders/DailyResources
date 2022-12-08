@@ -8,16 +8,14 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.model.data.IModelData;
-import net.minecraftforge.client.model.data.ModelDataMap;
+import net.minecraftforge.client.model.data.ModelData;
 import net.minecraftforge.client.model.data.ModelProperty;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidAttributes;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.CapabilityItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.brassgoggledcoders.dailyresources.capability.ResourceStorage;
@@ -40,7 +38,7 @@ public class FluidResourceStorageBlockEntity extends ResourceStorageBlockEntity<
 
     public FluidResourceStorageBlockEntity(BlockEntityType<?> pType, BlockPos pWorldPosition, BlockState pBlockState) {
         super(pType, pWorldPosition, pBlockState);
-        this.wrapper = LazyOptional.of(() -> new FluidHandlerWrapper(this::getStorageFluidHandler, 4, 16 * FluidAttributes.BUCKET_VOLUME));
+        this.wrapper = LazyOptional.of(() -> new FluidHandlerWrapper(this::getStorageFluidHandler, 4, 16 * FluidType.BUCKET_VOLUME));
     }
 
     @Override
@@ -79,7 +77,7 @@ public class FluidResourceStorageBlockEntity extends ResourceStorageBlockEntity<
                     this.tankFluids[i] = fluidStack;
                     different = true;
                 }
-                if (Math.abs(prior.getAmount() - current.getAmount()) > FluidAttributes.BUCKET_VOLUME) {
+                if (Math.abs(prior.getAmount() - current.getAmount()) > FluidType.BUCKET_VOLUME) {
                     different = true;
                     if (!this.tankFluids[i].isEmpty()) {
                         this.tankFluids[i].setAmount((int) Math.ceil((current.getAmount() / (float) this.getHandler().getTankCapacity(i)) * 100));
@@ -102,12 +100,12 @@ public class FluidResourceStorageBlockEntity extends ResourceStorageBlockEntity<
 
     protected void refreshStorageFluidHandler(LazyOptional<IFluidHandler> lazyOptional) {
         wrapper.invalidate();
-        wrapper = LazyOptional.of(() -> new FluidHandlerWrapper(this::getStorageFluidHandler, 4, 16 * FluidAttributes.BUCKET_VOLUME));
+        wrapper = LazyOptional.of(() -> new FluidHandlerWrapper(this::getStorageFluidHandler, 4, 16 * FluidType.BUCKET_VOLUME));
     }
 
     private LazyOptional<IFluidHandler> getStorageFluidHandler() {
         LazyOptional<IFluidHandler> handlerLazyOptional = this.getResourceStorageStorage()
-                .map(storageStorage -> storageStorage.getCapability(this.getUniqueId(), CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY))
+                .map(storageStorage -> storageStorage.getCapability(this.getUniqueId(), ForgeCapabilities.FLUID_HANDLER))
                 .orElse(LazyOptional.empty());
         handlerLazyOptional.addListener(this::refreshStorageFluidHandler);
         return handlerLazyOptional;
@@ -116,7 +114,7 @@ public class FluidResourceStorageBlockEntity extends ResourceStorageBlockEntity<
     @Override
     public boolean onConfirmed(UUID id, ResourceGroup resourceGroup, Choice<FluidStack> choice, UUID owner) {
         this.wrapper.invalidate();
-        wrapper = LazyOptional.of(() -> new FluidHandlerWrapper(this::getStorageFluidHandler, 4, 16 * FluidAttributes.BUCKET_VOLUME));
+        wrapper = LazyOptional.of(() -> new FluidHandlerWrapper(this::getStorageFluidHandler, 4, 16 * FluidType.BUCKET_VOLUME));
         return super.onConfirmed(id, resourceGroup, choice, owner);
     }
 
@@ -159,10 +157,10 @@ public class FluidResourceStorageBlockEntity extends ResourceStorageBlockEntity<
 
     @Override
     @NotNull
-    public IModelData getModelData() {
-        return new ModelDataMap.Builder()
-                .withInitial(ResourceStorageBlockEntity.TRIGGER_PROPERTY, this.getTrigger())
-                .withInitial(TANK_FLUIDS_PROPERTY, tankFluids)
+    public ModelData getModelData() {
+        return ModelData.builder()
+                .with(ResourceStorageBlockEntity.TRIGGER_PROPERTY, this.getTrigger())
+                .with(TANK_FLUIDS_PROPERTY, tankFluids)
                 .build();
     }
 
@@ -173,7 +171,7 @@ public class FluidResourceStorageBlockEntity extends ResourceStorageBlockEntity<
     @NotNull
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
+        if (cap == ForgeCapabilities.FLUID_HANDLER) {
             return this.wrapper.cast();
         }
 

@@ -8,6 +8,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.NotNull;
@@ -84,6 +85,12 @@ public class FluidResourceStorageMenu extends AbstractContainerMenu implements I
         return false;
     }
 
+    @Override
+    @NotNull
+    public ItemStack quickMoveStack(@NotNull Player pPlayer, int pIndex) {
+        return ItemStack.EMPTY;
+    }
+
     public IFluidHandler getFluidHandler() {
         return this.fluidHandler;
     }
@@ -109,6 +116,7 @@ public class FluidResourceStorageMenu extends AbstractContainerMenu implements I
         }
     }
 
+    @SuppressWarnings("deprecation")
     public static FluidResourceStorageMenu create(MenuType<FluidResourceStorageMenu> menuType, int id, Inventory inventory,
                                                   @Nullable FriendlyByteBuf friendlyByteBuf) {
         return new FluidResourceStorageMenu(

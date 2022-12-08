@@ -2,8 +2,6 @@
   "type": "minecraft:block",
   "pools": [
     {
-      "name": "drop",
-      "rolls": 1.0,
       "bonus_rolls": 0.0,
       "entries": [
         {
@@ -11,24 +9,26 @@
           "functions": [
             {
               "function": "minecraft:copy_nbt",
-              "source": "block_entity",
               "ops": [
                 {
+                  "op": "replace",
                   "source": "UniqueId",
-                  "target": "BlockEntityTag.UniqueId",
-                  "op": "replace"
+                  "target": "BlockEntityTag.UniqueId"
                 },
                 {
+                  "op": "replace",
                   "source": "ResourceGroups",
-                  "target": "BlockEntityTag.ResourceGroups",
-                  "op": "replace"
+                  "target": "BlockEntityTag.ResourceGroups"
                 }
-              ]
+              ],
+              "source": "block_entity"
             }
           ],
           "name": "daily_resources:iron_tank"
         }
-      ]
+      ],
+      "name": "drop",
+      "rolls": 1.0
     }
   ]
 }

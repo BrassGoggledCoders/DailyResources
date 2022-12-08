@@ -4,26 +4,21 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import net.minecraft.client.renderer.block.model.BlockModel;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraftforge.client.model.IModelLoader;
+import net.minecraftforge.client.model.geometry.IGeometryLoader;
 import org.jetbrains.annotations.NotNull;
 import xyz.brassgoggledcoders.dailyresources.DailyResources;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-public class TriggerModelLoader implements IModelLoader<TriggerModel> {
-    public static final ResourceLocation ID = DailyResources.rl("trigger");
+public class TriggerModelLoader implements IGeometryLoader<TriggerModel> {
+    public static final String ID = "trigger";
+
     @Override
     @NotNull
     @ParametersAreNonnullByDefault
-    public TriggerModel read(JsonDeserializationContext deserializationContext, JsonObject modelContents) {
+    public TriggerModel read(JsonObject modelContents, JsonDeserializationContext deserializationContext) {
         return new TriggerModel(
                 deserializationContext.deserialize(modelContents.get("model"), BlockModel.class)
         );
-    }
-
-    @Override
-    public void onResourceManagerReload(@NotNull ResourceManager pResourceManager) {
-
     }
 }

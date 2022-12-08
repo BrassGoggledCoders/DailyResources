@@ -4,11 +4,52 @@
       "model": "daily_resources:block/barrel",
       "x": 180
     },
-    "facing=up,full=false,open=false": {
-      "model": "daily_resources:block/barrel"
+    "facing=down,full=false,open=true": {
+      "model": "daily_resources:block/barrel_open",
+      "x": 180
+    },
+    "facing=down,full=true,open=false": {
+      "model": "daily_resources:block/barrel",
+      "x": 180
+    },
+    "facing=down,full=true,open=true": {
+      "model": "daily_resources:block/barrel_open",
+      "x": 180
+    },
+    "facing=east,full=false,open=false": {
+      "model": "daily_resources:block/barrel",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,full=false,open=true": {
+      "model": "daily_resources:block/barrel_open",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,full=true,open=false": {
+      "model": "daily_resources:block/barrel",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,full=true,open=true": {
+      "model": "daily_resources:block/barrel_open",
+      "x": 90,
+      "y": 90
     },
     "facing=north,full=false,open=false": {
       "model": "daily_resources:block/barrel",
+      "x": 90
+    },
+    "facing=north,full=false,open=true": {
+      "model": "daily_resources:block/barrel_open",
+      "x": 90
+    },
+    "facing=north,full=true,open=false": {
+      "model": "daily_resources:block/barrel",
+      "x": 90
+    },
+    "facing=north,full=true,open=true": {
+      "model": "daily_resources:block/barrel_open",
       "x": 90
     },
     "facing=south,full=false,open=false": {
@@ -16,93 +57,52 @@
       "x": 90,
       "y": 180
     },
-    "facing=west,full=false,open=false": {
-      "model": "daily_resources:block/barrel",
+    "facing=south,full=false,open=true": {
+      "model": "daily_resources:block/barrel_open",
       "x": 90,
-      "y": 270
-    },
-    "facing=east,full=false,open=false": {
-      "model": "daily_resources:block/barrel",
-      "x": 90,
-      "y": 90
-    },
-    "facing=down,full=true,open=false": {
-      "model": "daily_resources:block/barrel",
-      "x": 180
-    },
-    "facing=up,full=true,open=false": {
-      "model": "daily_resources:block/barrel"
-    },
-    "facing=north,full=true,open=false": {
-      "model": "daily_resources:block/barrel",
-      "x": 90
+      "y": 180
     },
     "facing=south,full=true,open=false": {
       "model": "daily_resources:block/barrel",
       "x": 90,
       "y": 180
     },
-    "facing=west,full=true,open=false": {
-      "model": "daily_resources:block/barrel",
-      "x": 90,
-      "y": 270
-    },
-    "facing=east,full=true,open=false": {
-      "model": "daily_resources:block/barrel",
-      "x": 90,
-      "y": 90
-    },
-    "facing=down,full=false,open=true": {
+    "facing=south,full=true,open=true": {
       "model": "daily_resources:block/barrel_open",
-      "x": 180
+      "x": 90,
+      "y": 180
+    },
+    "facing=up,full=false,open=false": {
+      "model": "daily_resources:block/barrel"
     },
     "facing=up,full=false,open=true": {
       "model": "daily_resources:block/barrel_open"
     },
-    "facing=north,full=false,open=true": {
-      "model": "daily_resources:block/barrel_open",
-      "x": 90
+    "facing=up,full=true,open=false": {
+      "model": "daily_resources:block/barrel"
     },
-    "facing=south,full=false,open=true": {
-      "model": "daily_resources:block/barrel_open",
+    "facing=up,full=true,open=true": {
+      "model": "daily_resources:block/barrel_open"
+    },
+    "facing=west,full=false,open=false": {
+      "model": "daily_resources:block/barrel",
       "x": 90,
-      "y": 180
+      "y": 270
     },
     "facing=west,full=false,open=true": {
       "model": "daily_resources:block/barrel_open",
       "x": 90,
       "y": 270
     },
-    "facing=east,full=false,open=true": {
-      "model": "daily_resources:block/barrel_open",
+    "facing=west,full=true,open=false": {
+      "model": "daily_resources:block/barrel",
       "x": 90,
-      "y": 90
-    },
-    "facing=down,full=true,open=true": {
-      "model": "daily_resources:block/barrel_open",
-      "x": 180
-    },
-    "facing=up,full=true,open=true": {
-      "model": "daily_resources:block/barrel_open"
-    },
-    "facing=north,full=true,open=true": {
-      "model": "daily_resources:block/barrel_open",
-      "x": 90
-    },
-    "facing=south,full=true,open=true": {
-      "model": "daily_resources:block/barrel_open",
-      "x": 90,
-      "y": 180
+      "y": 270
     },
     "facing=west,full=true,open=true": {
       "model": "daily_resources:block/barrel_open",
       "x": 90,
       "y": 270
-    },
-    "facing=east,full=true,open=true": {
-      "model": "daily_resources:block/barrel_open",
-      "x": 90,
-      "y": 90
     }
   }
 }

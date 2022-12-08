@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
+import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.HashCache;
@@ -19,7 +20,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 public class CodecDataProvider<T> implements DataProvider {
-    private final Gson gson;
     private final String name;
     private final String modId;
     private final String path;
@@ -33,9 +33,6 @@ public class CodecDataProvider<T> implements DataProvider {
         this.path = path;
         this.codec = codec;
         this.dataGenerator = dataGenerator;
-        this.gson = new GsonBuilder()
-                .setPrettyPrinting()
-                .create();
         this.entries = Maps.newHashMap();
     }
 
@@ -49,7 +46,7 @@ public class CodecDataProvider<T> implements DataProvider {
     }
 
     @Override
-    public void run(@NotNull HashCache pCache) throws IOException {
+    public void run(@NotNull CachedOutput pCache) throws IOException {
         Path path = this.dataGenerator.getOutputFolder();
         Set<ResourceLocation> set = Sets.newHashSet();
         for (Entry<String, T> entry : this.entries.entrySet()) {
@@ -57,8 +54,7 @@ public class CodecDataProvider<T> implements DataProvider {
             if (!set.add(id)) {
                 throw new IllegalStateException("Duplicate %s: %s".formatted(this.path, id));
             } else {
-                DataProvider.save(
-                        gson,
+                DataProvider.saveStable(
                         pCache,
                         this.codec.encodeStart(JsonOps.INSTANCE, entry.getValue())
                                 .getOrThrow(false, s -> {

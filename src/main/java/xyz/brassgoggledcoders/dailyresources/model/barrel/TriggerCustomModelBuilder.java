@@ -4,13 +4,14 @@ import com.google.gson.JsonObject;
 import net.minecraftforge.client.model.generators.CustomLoaderBuilder;
 import net.minecraftforge.client.model.generators.ModelBuilder;
 import net.minecraftforge.common.data.ExistingFileHelper;
+import xyz.brassgoggledcoders.dailyresources.DailyResources;
 
 public class TriggerCustomModelBuilder<T extends ModelBuilder<T>> extends CustomLoaderBuilder<T> {
     private T model;
 
 
     public TriggerCustomModelBuilder(T parent, ExistingFileHelper existingFileHelper) {
-        super(TriggerModelLoader.ID, parent, existingFileHelper);
+        super(DailyResources.rl(TriggerModelLoader.ID), parent, existingFileHelper);
     }
 
     public void setModel(T model) {

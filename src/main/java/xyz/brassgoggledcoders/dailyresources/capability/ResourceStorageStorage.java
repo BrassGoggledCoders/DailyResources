@@ -77,6 +77,7 @@ public class ResourceStorageStorage {
         ResourceStorage resourceStorage = this.getResourceStorage(uniqueId);
         if (resourceStorage == null) {
             resourceStorage = this.createResourceStorage(uniqueId, creator.get());
+            cachedTriggered.clear();
         }
         return resourceStorage;
     }
@@ -182,6 +183,10 @@ public class ResourceStorageStorage {
             storageListeners.put(resourceStorageEntry.getKey(), resourceStorageEntry.getValue().getListeners());
         }
         return storageListeners;
+    }
+
+    public void resetCache() {
+        this.cachedTriggered.clear();
     }
 
     public void invalidate() {

@@ -326,12 +326,18 @@ public abstract class ResourceStorageBlockEntity<T> extends BlockEntity implemen
                         resourceStorage.addListener(this.getLevel(), this.getBlockPos());
                     }
 
-                    return resourceStorage.addSelection(new ResourceStorageSelection<>(
+                    boolean addedSelection = resourceStorage.addSelection(new ResourceStorageSelection<>(
                             id,
                             resourceGroupId.get(),
                             choice,
                             owner
                     ));
+
+                    if (addedSelection) {
+                        resourceStorageStorage.resetCache();
+                    }
+
+                    return addedSelection;
                 })
                 .orElse(false);
     }

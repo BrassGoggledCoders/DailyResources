@@ -139,7 +139,7 @@ public class ResourceSelectorMenu<T> extends AbstractContainerMenu {
     @Override
     @NotNull
     public ItemStack quickMoveStack(@NotNull Player pPlayer, int pIndex) {
-        return null;
+        return ItemStack.EMPTY;
     }
 
     private boolean hasValidGroupIndex(int index) {

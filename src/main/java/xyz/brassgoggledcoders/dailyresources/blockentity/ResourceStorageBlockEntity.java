@@ -13,6 +13,8 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -358,20 +360,26 @@ public abstract class ResourceStorageBlockEntity<T> extends BlockEntity implemen
     public void onEvent(@NotNull ListenedEvent listenedEvent) {
         if (this.getLevel() != null) {
             if (listenedEvent == ListenedEvent.FULL) {
+                this.getLevel().playSound(null, this.getBlockPos(), SoundEvents.DISPENSER_FAIL, SoundSource.BLOCKS, 1F, 1F);
                 this.getLevel().scheduleTick(this.getBlockPos(), this.getBlockState().getBlock(), 200);
                 this.getLevel().setBlock(this.getBlockPos(), this.getBlockState().setValue(DailyResourcesBlockStateProperties.FULL, true), Block.UPDATE_ALL);
-            } else if (listenedEvent == ListenedEvent.UPDATE && checkChangeSize()) {
-                this.getLevel().updateNeighbourForOutputSignal(this.getBlockPos(), this.getBlockState().getBlock());
-                if (sendClientUpdate()) {
-                    this.getLevel().markAndNotifyBlock(
-                            this.getBlockPos(),
-                            this.getLevel().getChunkAt(this.getBlockPos()),
-                            this.getBlockState(),
-                            this.getBlockState(),
-                            Block.UPDATE_ALL,
-                            1
-                    );
+            } else if (listenedEvent == ListenedEvent.UPDATE) {
+                this.getLevel().playSound(null, this.getBlockPos(), SoundEvents.BELL_BLOCK, SoundSource.BLOCKS, 1F, 1F);
+                if (checkChangeSize()) {
+                    this.getLevel().updateNeighbourForOutputSignal(this.getBlockPos(), this.getBlockState().getBlock());
+                    if (sendClientUpdate()) {
+                        this.getLevel().markAndNotifyBlock(
+                                this.getBlockPos(),
+                                this.getLevel().getChunkAt(this.getBlockPos()),
+                                this.getBlockState(),
+                                this.getBlockState(),
+                                Block.UPDATE_ALL,
+                                1
+                        );
+                    }
                 }
+
+
             }
         }
     }
